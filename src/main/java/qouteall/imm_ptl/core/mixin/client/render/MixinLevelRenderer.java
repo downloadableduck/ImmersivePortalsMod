@@ -362,7 +362,7 @@ public abstract class MixinLevelRenderer implements IEWorldRenderer {
             CrossPortalEntityRenderer.beforeRenderingEntity(entity, poseStack);
             renderEntity(
                     entity,
-                    camera.getXRot(), camera.getYRot(), camera.getEntity().getZ(),
+                    camera.getPosition().x, camera.getPosition().y, camera.getPosition().z,
                     deltaTracker.getGameTimeDeltaPartialTick(true),
                     poseStack, bufferSource
             );

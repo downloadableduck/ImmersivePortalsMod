@@ -163,7 +163,7 @@ public abstract class MixinEntity implements IEEntity, ImmPtlEntityExtension {
         )
     )
     private AABB redirectBoundingBoxInCheckingBlockCollision(Entity entity) {
-        if (entity == null) return AABB.of(BoundingBox.infinite());
+        if (ip_getActiveCollisionBox(entity.getBoundingBox()) == null) return AABB.of(BoundingBox.infinite());
         return ip_getActiveCollisionBox(entity.getBoundingBox());
     }
     

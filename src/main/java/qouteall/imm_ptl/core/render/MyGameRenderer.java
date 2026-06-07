@@ -106,8 +106,9 @@ public class MyGameRenderer {
         
         switchAndRenderTheWorld(
             worldRenderInfo.world,
-            worldRenderInfo.cameraPos,
-            worldRenderInfo.cameraPos,
+            worldRenderInfo.cameraPos.x,
+            worldRenderInfo.cameraPos.y,
+            worldRenderInfo.cameraPos.z,
             invokeWrapper,
             worldRenderInfo.renderDistance,
             worldRenderInfo.doRenderHand
@@ -118,8 +119,9 @@ public class MyGameRenderer {
     
     private static void switchAndRenderTheWorld(
         ClientLevel newWorld,
-        Vec3 thisTickCameraPos,
-        Vec3 lastTickCameraPos,
+        double xPos,
+        double yPos,
+        double zPos,
         Consumer<Runnable> invokeWrapper,
         int renderDistance,
         boolean doRenderHand
@@ -142,7 +144,9 @@ public class MyGameRenderer {
         DimensionRenderHelper helper =
             ClientWorldLoader.getDimensionRenderHelper(newDimension);
         Camera newCamera = new Camera();
-        
+
+        newCamera.setPosition(xPos, yPos, zPos);
+
         // store old state
         ClientLevel oldWorld = client.level;
         LevelRenderer oldWorldRenderer = client.levelRenderer;
