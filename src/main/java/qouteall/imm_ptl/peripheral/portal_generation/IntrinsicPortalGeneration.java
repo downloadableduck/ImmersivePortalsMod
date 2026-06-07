@@ -1,6 +1,7 @@
 package qouteall.imm_ptl.peripheral.portal_generation;
 
 import com.google.common.collect.Lists;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
@@ -131,7 +132,7 @@ public class IntrinsicPortalGeneration {
         }
         
         PortalShape areaHelper = newPortal.get();
-        areaHelper.createPortalBlocks();
+        areaHelper.createPortalBlocks(Minecraft.getInstance().level);
         return true;
     }
 }

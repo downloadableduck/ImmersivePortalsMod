@@ -386,7 +386,7 @@ public class CrossPortalEntityRenderer {
                         Vec3 cameraPos = PortalRenderer.client.gameRenderer.getMainCamera().getPosition();
                         
                         boolean isHidden = cameraPos.subtract(collidingPortal.getOriginPos())
-                            .dot(collidingPortal.getNormal()) < 0;
+                            .dot(collidingPortal.getUnitVec3i()) < 0;
                         if (isHidden) {
                             return false;
                         }

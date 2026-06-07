@@ -1,7 +1,6 @@
 package qouteall.imm_ptl.core.mixin.client.render.shader;
 
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,7 +14,7 @@ import java.util.Map;
 
 @Mixin(GameRenderer.class)
 public class MixinGameRenderer_Shaders {
-    @Shadow
+    /*@Shadow
     @Final
     private Map<String, ShaderInstance> shaders;
     
@@ -28,5 +27,5 @@ public class MixinGameRenderer_Shaders {
                 shaders.put(shader.getName(), shader);
             }
         );
-    }
+    }*/
 }

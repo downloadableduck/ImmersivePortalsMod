@@ -13,6 +13,8 @@ import qouteall.imm_ptl.core.portal.custom_portal_gen.CustomPortalGenManager;
 
 import java.util.UUID;
 
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
+
 @Mixin(ItemEntity.class)
 public abstract class MixinItemEntity_P {
     @Shadow
@@ -39,7 +41,7 @@ public abstract class MixinItemEntity_P {
             return;
         }
         
-        this_.level().getProfiler().push("imm_ptl_item_tick");
+        getProfiler().push("imm_ptl_item_tick");
         
         CustomPortalGenManager customPortalGenManager =
             IPPerServerInfo.of(this_.getServer()).customPortalGenManager;
@@ -47,6 +49,6 @@ public abstract class MixinItemEntity_P {
             customPortalGenManager.onItemTick(this_);
         }
         
-        this_.level().getProfiler().pop();
+        getProfiler().pop();
     }
 }

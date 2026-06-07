@@ -25,10 +25,10 @@ public class VerticalConnectingPortal extends GlobalTrackedPortal {
     private static Predicate<Portal> getPredicate(ConnectorType connectorType) {
         switch (connectorType) {
             case floor:
-                return portal -> portal instanceof VerticalConnectingPortal && portal.getNormal().y > 0;
+                return portal -> portal instanceof VerticalConnectingPortal && portal.getUnitVec3i().y > 0;
             default:
             case ceil:
-                return portal -> portal instanceof VerticalConnectingPortal && portal.getNormal().y < 0;
+                return portal -> portal instanceof VerticalConnectingPortal && portal.getUnitVec3i().y < 0;
         }
     }
     

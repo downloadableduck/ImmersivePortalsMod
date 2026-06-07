@@ -14,10 +14,12 @@ import qouteall.imm_ptl.core.network.PacketRedirection;
 
 import java.util.Set;
 
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
+
 public class WorldInfoSender {
     public static void init() {
         ServerTickEvents.END_SERVER_TICK.register((server) -> {
-            server.getProfiler().push("portal_send_world_info");
+            getProfiler().push("portal_send_world_info");
             if (McHelper.getServerGameTime() % 100 == 42) {
                 for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                     Set<ResourceKey<Level>> visibleDimensions = ImmPtlChunkTracking.getVisibleDimensions(player);
@@ -39,7 +41,7 @@ public class WorldInfoSender {
                     
                 }
             }
-            server.getProfiler().pop();
+            getProfiler().pop();
         });
     }
     

@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +34,9 @@ import qouteall.imm_ptl.core.portal.EndPortalEntity;
 import qouteall.imm_ptl.core.portal.Portal;
 import qouteall.q_misc_util.Helper;
 import qouteall.q_misc_util.my_util.CountDownInt;
+
+import java.util.List;
+import java.util.Set;
 
 @Mixin(Entity.class)
 public abstract class MixinEntity implements IEEntity, ImmPtlEntityExtension {
@@ -152,13 +156,14 @@ public abstract class MixinEntity implements IEEntity, ImmPtlEntityExtension {
     }
     
     @Redirect(
-        method = "Lnet/minecraft/world/entity/Entity;checkInsideBlocks()V",
+        method = "checkInsideBlocks",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/world/entity/Entity;getBoundingBox()Lnet/minecraft/world/phys/AABB;"
         )
     )
     private AABB redirectBoundingBoxInCheckingBlockCollision(Entity entity) {
+        if (entity == null) return AABB.of(BoundingBox.infinite());
         return ip_getActiveCollisionBox(entity.getBoundingBox());
     }
     
@@ -172,8 +177,8 @@ public abstract class MixinEntity implements IEEntity, ImmPtlEntityExtension {
         locals = LocalCapture.CAPTURE_FAILHARD,
         cancellable = true
     )
-    private void onCheckInsideBlocks(CallbackInfo ci, AABB box) {
-        if (box == null) {
+    private void onCheckInsideBlocks(List<Entity.Movement> list, Set<BlockState> set, CallbackInfo ci) {
+        if (set == null || list == null) {
             ci.cancel();
         }
     }
@@ -219,7 +224,7 @@ public abstract class MixinEntity implements IEEntity, ImmPtlEntityExtension {
         Portal collidingPortal = ((IEEntity) this).ip_getCollidingPortal();
         Entity this_ = (Entity) (Object) this;
         if (collidingPortal != null) {
-            if (collidingPortal.getNormal().y > 0) {
+            if (collidingPortal.getUnitVec3i().y > 0) {
                 BlockPos remoteLandingPos = BlockPos.containing(
                     collidingPortal.transformPoint(this_.position())
                 );

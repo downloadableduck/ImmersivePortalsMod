@@ -803,9 +803,9 @@ public class ClientPortalWandPortalDrag {
             ));
         }
         
-        if (!isOrthodox.test(portal.getNormal())) {
+        if (!isOrthodox.test(portal.getUnitVec3i())) {
             candidates.add(Pair.of(
-                new Plane(cursorPos, portal.getNormal()),
+                new Plane(cursorPos, portal.getUnitVec3i()),
                 Component.translatable("imm_ptl.wand.plane.portal_z")
             ));
         }

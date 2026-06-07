@@ -262,7 +262,7 @@ public abstract class PortalRenderer {
         Matrix4f rot = getPortalRotationMatrix(portal);
         
         Matrix4f mirror = portal instanceof Mirror ?
-            TransformationManager.getMirrorTransformation(portal.getNormal()) : null;
+            TransformationManager.getMirrorTransformation(portal.getUnitVec3i()) : null;
         
         Matrix4f scale = getPortalScaleMatrix(portal);
         

@@ -13,6 +13,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.util.profiling.Profiler;
+import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -37,6 +39,10 @@ import static org.lwjgl.opengl.GL11.GL_NO_ERROR;
 
 @Environment(EnvType.CLIENT)
 public class CHelper {
+
+    public static ProfilerFiller getProfiler() {
+        return Profiler.get();
+    }
     
     private static final Logger LOGGER = LogUtils.getLogger();
     

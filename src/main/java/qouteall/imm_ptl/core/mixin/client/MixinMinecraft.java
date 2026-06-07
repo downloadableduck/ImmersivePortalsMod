@@ -35,6 +35,8 @@ import qouteall.imm_ptl.core.teleportation.ClientTeleportationManager;
 import java.util.List;
 import java.util.function.Function;
 
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
+
 @Mixin(Minecraft.class)
 public abstract class MixinMinecraft implements IEMinecraftClient {
     @Final
@@ -52,9 +54,6 @@ public abstract class MixinMinecraft implements IEMinecraftClient {
     
     @Shadow
     private static int fps;
-    
-    @Shadow
-    public abstract ProfilerFiller getProfiler();
     
     @Shadow
     @Nullable

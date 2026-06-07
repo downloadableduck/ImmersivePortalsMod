@@ -7,11 +7,14 @@ import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector4f;
 import qouteall.imm_ptl.core.ClientWorldLoader;
 import qouteall.imm_ptl.core.ducks.IECamera;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
 
 /**
  * {@link FogRenderer}
@@ -45,6 +48,7 @@ public class FogRendererContext {
     }
     
     public static void update() {
+        if (swappingManager == null) return;
         swappingManager.setOuterDimension(RenderStates.originalPlayerDimension);
         swappingManager.resetChecks();
         if (ClientWorldLoader.getIsInitialized()) {
@@ -67,7 +71,7 @@ public class FogRendererContext {
     ) {
         Minecraft client = Minecraft.getInstance();
         
-        client.getProfiler().push("get_fog_color");
+        getProfiler().push("get_fog_color");
         
         ClientLevel oldWorld = client.level;
         
@@ -88,11 +92,11 @@ public class FogRendererContext {
         ((IECamera) newCamera).portal_setFocusedEntity(client.cameraEntity);
         
         try {
-            FogRenderer.setupColor(
+            FogRenderer.computeFogColor(
                 newCamera,
-                RenderStates.getPartialTick(),
-                destWorld,
-                client.options.getEffectiveRenderDistance(),
+                    RenderStates.getPartialTick(),
+                client.level,
+                client.options.renderDistance().get(),
                 client.gameRenderer.getDarkenWorldAmount(RenderStates.getPartialTick())
             );
             
@@ -104,7 +108,7 @@ public class FogRendererContext {
             swappingManager.popSwapping();
             client.level = oldWorld;
             
-            client.getProfiler().pop();
+            getProfiler().pop();
         }
     }
     

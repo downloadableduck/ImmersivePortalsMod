@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -16,11 +17,13 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
@@ -104,7 +107,7 @@ public class Portal extends Entity implements
             .trackRangeBlocks(96)
             .trackedUpdateRate(20)
             .forceTrackedVelocityUpdates(true)
-            .build();
+            .build(ResourceKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath("immersive_portals", "portal")));
     }
     
     private static final AABB NULL_BOX =
@@ -479,7 +482,7 @@ public class Portal extends Entity implements
      * @return The normal vector of the portal plane
      * Note: the normal is no longer the plane normal for 3D portals.
      */
-    public Vec3 getNormal() {
+    public Vec3 getUnitVec3i() {
         if (normalCache == null) {
             normalCache = axisW.cross(axisH).normalize();
         }
@@ -492,7 +495,7 @@ public class Portal extends Entity implements
      */
     public Vec3 getContentDirection() {
         if (contentDirectionCache == null) {
-            contentDirectionCache = transformLocalVecNonScale(getNormal().scale(-1));
+            contentDirectionCache = transformLocalVecNonScale(getUnitVec3i().scale(-1));
         }
         return contentDirectionCache;
     }
@@ -883,7 +886,7 @@ public class Portal extends Entity implements
                 || IPGlobal.pureMirror;
             double mirrorOffset = offsetFront ? 0.01 : -0.01;
             portalPosRelativeToCamera = portalPosRelativeToCamera.add(
-                ((Mirror) this).getNormal().scale(mirrorOffset));
+                ((Mirror) this).getUnitVec3i().scale(mirrorOffset));
         }
         
         getPortalShape().renderViewAreaMesh(
@@ -983,7 +986,12 @@ public class Portal extends Entity implements
     public void move(MoverType type, Vec3 movement) {
         //portal cannot be moved
     }
-    
+
+    @Override
+    public boolean hurtServer(ServerLevel serverLevel, DamageSource damageSource, float f) {
+        return false;
+    }
+
     /**
      * Invalid portals will be automatically removed
      */
@@ -1054,8 +1062,8 @@ public class Portal extends Entity implements
     }
     
     public Direction getApproximateFacingDirection() {
-        return Direction.getNearest(
-            getNormal().x, getNormal().y, getNormal().z
+        return Direction.getApproximateNearest(
+            getUnitVec3i().x, getUnitVec3i().y, getUnitVec3i().z
         );
     }
     
@@ -1090,7 +1098,7 @@ public class Portal extends Entity implements
      * Note: only works with flat portal
      */
     public double getDistanceToPlane(Vec3 pos) {
-        return pos.subtract(getOriginPos()).dot(getNormal());
+        return pos.subtract(getOriginPos()).dot(getUnitVec3i());
     }
     
     /**
@@ -1322,7 +1330,7 @@ public class Portal extends Entity implements
             a.level().dimension() == b.dimensionTo &&
             a.getOriginPos().distanceTo(b.getDestPos()) < 0.1 &&
             a.getDestPos().distanceTo(b.getOriginPos()) < 0.1 &&
-            a.getNormal().dot(b.getContentDirection()) < -0.9;
+            a.getUnitVec3i().dot(b.getContentDirection()) < -0.9;
     }
     
     public static boolean isParallelOrientedPortal(Portal currPortal, Portal outerPortal) {
@@ -1330,7 +1338,7 @@ public class Portal extends Entity implements
             .dot(outerPortal.getContentDirection());
         
         return currPortal.level().dimension() == outerPortal.dimensionTo &&
-            currPortal.getNormal().dot(outerPortal.getContentDirection()) < -0.9 &&
+            currPortal.getUnitVec3i().dot(outerPortal.getContentDirection()) < -0.9 &&
             Math.abs(dot) < 0.001;
     }
     
@@ -1339,7 +1347,7 @@ public class Portal extends Entity implements
             a.level().dimension() == b.dimensionTo &&
             a.getOriginPos().distanceTo(b.getDestPos()) < 0.1 &&
             a.getDestPos().distanceTo(b.getOriginPos()) < 0.1 &&
-            a.getNormal().dot(b.getContentDirection()) > 0.9;
+            a.getUnitVec3i().dot(b.getContentDirection()) > 0.9;
     }
     
     public static boolean isFlippedPortal(Portal a, Portal b) {
@@ -1350,7 +1358,7 @@ public class Portal extends Entity implements
             a.dimensionTo == b.dimensionTo &&
             a.getOriginPos().distanceTo(b.getOriginPos()) < 0.1 &&
             a.getDestPos().distanceTo(b.getDestPos()) < 0.1 &&
-            a.getNormal().dot(b.getNormal()) < -0.9;
+            a.getUnitVec3i().dot(b.getUnitVec3i()) < -0.9;
     }
     
     @Override
@@ -1653,11 +1661,11 @@ public class Portal extends Entity implements
     }
     
     public Direction getTransformedGravityDirection(Direction oldGravityDir) {
-        Vec3 oldGravityVec = Vec3.atLowerCornerOf(oldGravityDir.getNormal());
+        Vec3 oldGravityVec = Vec3.atLowerCornerOf(oldGravityDir.getUnitVec3i());
         
         Vec3 newGravityVec = transformLocalVecNonScale(oldGravityVec);
         
-        return Direction.getNearest(
+        return Direction.getApproximateNearest(
             newGravityVec.x, newGravityVec.y, newGravityVec.z
         );
     }
@@ -1892,7 +1900,7 @@ public class Portal extends Entity implements
     }
     
     public Vec3 transformFromPortalLocalToWorld(Vec3 localPos) {
-        return axisW.scale(localPos.x).add(axisH.scale(localPos.y)).add(getNormal().scale(localPos.z)).add(getOriginPos());
+        return axisW.scale(localPos.x).add(axisH.scale(localPos.y)).add(getUnitVec3i().scale(localPos.z)).add(getOriginPos());
     }
     
     public Vec3 transformFromWorldToPortalLocal(Vec3 worldPos) {
@@ -1900,7 +1908,7 @@ public class Portal extends Entity implements
         return new Vec3(
             relativePos.dot(axisW),
             relativePos.dot(axisH),
-            relativePos.dot(getNormal())
+            relativePos.dot(getUnitVec3i())
         );
     }
     

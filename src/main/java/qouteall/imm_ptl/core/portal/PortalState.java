@@ -178,7 +178,7 @@ public class PortalState {
         Vec3 scaled = rotated.scale(scaling);
         
         if (isMirror) {
-            return Mirror.mirroredVec(scaled, getNormal());
+            return Mirror.mirroredVec(scaled, getUnitVec3i());
         }
         else {
             return scaled;
@@ -216,12 +216,12 @@ public class PortalState {
         );
     }
     
-    public Vec3 getNormal() {
-        return McHelper.getNormalFromOrientation(this.orientation);
+    public Vec3 getUnitVec3i() {
+        return McHelper.getUnitVec3iFromOrientation(this.orientation);
     }
     
     public Vec3 getContentDirection() {
-        return rotation.rotate(getNormal().scale(-1));
+        return rotation.rotate(getUnitVec3i().scale(-1));
     }
     
     public UnilateralPortalState getThisSideState() {

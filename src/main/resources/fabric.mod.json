@@ -45,8 +45,8 @@
   ],
   "depends": {
     "fabricloader": ">=0.7.4",
-    "fabric-api": ">=0.109.0",
-    "minecraft": ["1.21", "1.21.1"],
+    "fabric-api": "*",
+    "minecraft": ["1.21.2", "1.21.3"],
     "dimlib": "*"
   },
   "breaks": {
@@ -79,5 +79,5 @@
       "compat.immersive_portals.ip_IPNetworkingMixin": "Implemented"
     }
   },
-  "accessWidener": "imm_ptl.accesswidener"
+  "accessWidener": "imm_ptl.classtweaker"
 }

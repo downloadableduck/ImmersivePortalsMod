@@ -130,7 +130,7 @@ public class NetherPortalEntity extends BreakablePortalEntity {
         if (IPGlobal.netherPortalOverlay) {
             switch (blockPortalShape.axis) {
                 case X -> {return overlay_x;}
-                case Y -> {return getNormal().y > 0 ? overlay_y_up : overlay_y_down;}
+                case Y -> {return getUnitVec3i().y > 0 ? overlay_y_up : overlay_y_down;}
                 case Z -> {return overlay_z;}
             }
         }

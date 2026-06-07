@@ -8,12 +8,10 @@ import qouteall.imm_ptl.core.render.context_management.FogRendererContext;
 
 @Mixin(value = FogRenderer.class, priority = 1100)
 public class MixinFogRenderer {
-    @Shadow
-    private static float fogRed;
-    @Shadow
-    private static float fogGreen;
-    @Shadow
-    private static float fogBlue;
+
+    private static float fogRed = 1;
+    private static float fogGreen = 1;
+    private static float fogBlue = 1;
     @Shadow
     private static int targetBiomeFog = -1;
     @Shadow
@@ -40,8 +38,8 @@ public class MixinFogRenderer {
             context.biomeChangedTime = biomeChangedTime;
         };
         
-        FogRendererContext.getCurrentFogColor =
-            () -> new Vec3(fogRed, fogGreen, fogBlue);
+        //FogRendererContext.getCurrentFogColor =
+            //() -> new Vec3(fogRed, fogGreen, fogBlue);
         
         FogRendererContext.init();
     }

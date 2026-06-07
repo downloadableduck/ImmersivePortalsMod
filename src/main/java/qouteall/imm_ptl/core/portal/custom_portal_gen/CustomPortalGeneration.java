@@ -30,6 +30,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
+
 public class CustomPortalGeneration {
     public static final ResourceKey<Level> THE_SAME_DIMENSION = ResourceKey.create(
         Registries.DIMENSION,
@@ -262,9 +264,9 @@ public class CustomPortalGeneration {
             return false;
         }
         
-        world.getProfiler().push("custom_portal_gen_perform");
+        getProfiler().push("custom_portal_gen_perform");
         boolean result = form.perform(this, world, startPos, toWorld, triggeringEntity);
-        world.getProfiler().pop();
+        getProfiler().pop();
         return result;
     }
     

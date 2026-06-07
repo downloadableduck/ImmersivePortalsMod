@@ -265,7 +265,7 @@ public class PortalAnimationCommand {
                 .executes(context -> PortalCommand.processPortalTargetedCommand(context, portal -> {
                     double angularVelocity = DoubleArgumentType.getDouble(context, "degreesPerTick");
                     
-                    giveRotationAnimation(portal, portal.getOriginPos(), portal.getNormal(), angularVelocity);
+                    giveRotationAnimation(portal, portal.getOriginPos(), portal.getUnitVec3i(), angularVelocity);
                     
                     PortalCommand.reloadPortal(portal);
                     context.getSource().sendSuccess(() -> getAnimationInfo(portal), false);

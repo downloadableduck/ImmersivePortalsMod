@@ -188,7 +188,7 @@ public record UnilateralPortalState(
         );
     }
     
-    public Vec3 getNormal() {
+    public Vec3 getUnitVec3i() {
         // same as multiplying (0, 0, 1) to matrix
         return new Vec3(
             orientationMatrix.m20(),

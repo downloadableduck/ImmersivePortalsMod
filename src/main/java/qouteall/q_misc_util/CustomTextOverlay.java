@@ -14,6 +14,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.TreeMap;
 
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
+
 /**
  * Make this because {@link Gui#setOverlayMessage(Component, boolean)} does not support multi-line
  */
@@ -107,7 +109,7 @@ public class CustomTextOverlay {
         
         Font font = minecraft.gui.getFont();
         
-        minecraft.getProfiler().push("imm_ptl_custom_overlay");
+        getProfiler().push("imm_ptl_custom_overlay");
         if (renderAtBottomCenter) {
             // Note: the parchment names are incorrect
             multiLineLabelCache.renderCentered(
@@ -128,6 +130,6 @@ public class CustomTextOverlay {
         
         guiGraphics.pose().popPose();
         
-        minecraft.getProfiler().pop();
+        getProfiler().pop();
     }
 }

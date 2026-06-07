@@ -211,7 +211,7 @@ public class DQuaternion {
     /**
      * quaternions are normalized 4D vectors
      */
-    public DQuaternion getNormalized() {
+    public DQuaternion getUnitVec3iized() {
         double lenSq = dotProduct(this);
         if (lenSq != 0) {
             // no fastInverseSqrt. precision is the most important
@@ -322,7 +322,7 @@ public class DQuaternion {
             // If the inputs are too close for comfort, linearly interpolate
             // and normalize the result.
             
-            return a.multiply(1 - t).add(b.multiply(t)).getNormalized();
+            return a.multiply(1 - t).add(b.multiply(t)).getUnitVec3iized();
         }
         
         double theta_0 = Math.acos(dot);
@@ -470,7 +470,7 @@ public class DQuaternion {
             fixCoordinateFloatingPointError(getW())
         );
         
-        return quaternion.getNormalized();
+        return quaternion.getUnitVec3iized();
     }
     
     private static double fixCoordinateFloatingPointError(double num) {
@@ -535,7 +535,7 @@ public class DQuaternion {
         return this.rotate(new Vec3(0, 1, 0));
     }
     
-    public Vec3 getNormal() {
+    public Vec3 getUnitVec3i() {
         return this.rotate(new Vec3(0, 0, 1));
     }
     

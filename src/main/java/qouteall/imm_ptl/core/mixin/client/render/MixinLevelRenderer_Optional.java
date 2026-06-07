@@ -1,5 +1,6 @@
 package qouteall.imm_ptl.core.mixin.client.render;
 
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -73,7 +74,7 @@ public class MixinLevelRenderer_Optional {
         method = "renderSectionLayer",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/renderer/ShaderInstance;apply()V"
+            target = "Lnet/minecraft/client/renderer/CompiledShaderProgram;apply()V"
         ),
         require = 0
     )
@@ -86,39 +87,39 @@ public class MixinLevelRenderer_Optional {
     // correct the position of updating ViewArea
     @Redirect(
         method = "setupRender",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getX()D"),
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;getXRot()F"),
         require = 0
     )
-    private double redirectGetXInSetupRender(LocalPlayer player) {
+    private float redirectGetXInSetupRender(Camera instance) {
         if (WorldRenderInfo.isRendering()) {
-            return WorldRenderInfo.getCameraPos().x;
+            return (float) WorldRenderInfo.getCameraPos().x;
         }
-        return player.getX();
+        return instance.getXRot();
     }
     
     // biolerplate
     @Redirect(
         method = "setupRender",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getY()D"),
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;getYRot()F"),
         require = 0
     )
-    private double redirectGetYInSetupRender(LocalPlayer player) {
+    private float redirectGetYInSetupRender(Camera instance) {
         if (WorldRenderInfo.isRendering()) {
-            return WorldRenderInfo.getCameraPos().y;
+            return (float) WorldRenderInfo.getCameraPos().y;
         }
-        return player.getY();
+        return instance.getYRot();
     }
     
     // biolerplate
     @Redirect(
         method = "setupRender",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getZ()D"),
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/Vec3;z()D"),
         require = 0
     )
-    private double redirectGetZInSetupRender(LocalPlayer player) {
+    private double redirectGetZInSetupRender(Vec3 instance) {
         if (WorldRenderInfo.isRendering()) {
             return WorldRenderInfo.getCameraPos().z;
         }
-        return player.getZ();
+        return instance.z();
     }
 }

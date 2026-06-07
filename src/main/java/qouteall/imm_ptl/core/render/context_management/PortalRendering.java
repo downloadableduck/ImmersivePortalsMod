@@ -4,6 +4,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -79,6 +80,9 @@ public class PortalRendering {
      * Must use after checking {@link #isRendering()}
      */
     public static @NotNull Portal getRenderingPortal() {
+        if (portalLayers.isEmpty()) {
+            return new Portal(Portal.ENTITY_TYPE, Minecraft.getInstance().level);
+        }
         return portalLayers.peek();
     }
     

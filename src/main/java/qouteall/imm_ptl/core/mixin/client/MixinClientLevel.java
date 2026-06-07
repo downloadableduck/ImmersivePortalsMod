@@ -99,13 +99,11 @@ public abstract class MixinClientLevel implements IEClientWorld {
         at = @At("RETURN")
     )
     void onConstructed(
-        ClientPacketListener clientPacketListener, ClientLevel.ClientLevelData clientLevelData,
-        ResourceKey resourceKey, Holder holder, int loadDistance, int j, Supplier supplier,
-        LevelRenderer levelRenderer, boolean bl, long l, CallbackInfo ci
+            ClientPacketListener clientPacketListener, ClientLevel.ClientLevelData clientLevelData, ResourceKey resourceKey, Holder holder, int i, int j, LevelRenderer levelRenderer, boolean bl, long l, int k, CallbackInfo ci
     ) {
         ClientLevel clientWorld = (ClientLevel) (Object) this;
         ClientChunkCache myClientChunkManager =
-            O_O.createMyClientChunkManager(clientWorld, loadDistance);
+            O_O.createMyClientChunkManager(clientWorld, j);
         chunkSource = myClientChunkManager;
     }
     

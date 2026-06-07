@@ -7,6 +7,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.ShapeRenderer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +62,7 @@ public class WireRenderingHelper {
         float green = ((color >> 8) & 0xff) / 255f;
         float blue = (color & 0xff) / 255f;
         
-        LevelRenderer.renderLineBox(
+        ShapeRenderer.renderLineBox(
             matrixStack,
             vertexConsumer,
             -boxSize / 2,
@@ -451,7 +452,7 @@ public class WireRenderingHelper {
     }
     
     private static Vec3[] getRectVertices(UnilateralPortalState rect, double shrinkFactor) {
-        Vec3 normal = rect.orientation().getNormal();
+        Vec3 normal = rect.orientation().getUnitVec3i();
         Vec3 axisW = rect.orientation().getAxisW();
         Vec3 axisH = rect.orientation().getAxisH();
         

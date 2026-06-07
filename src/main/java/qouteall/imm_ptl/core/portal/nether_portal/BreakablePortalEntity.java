@@ -275,7 +275,7 @@ public abstract class BreakablePortalEntity extends Portal {
             new AABB(BlockPos.containing(portal.getDestPos())),
             10,
             e -> (e.getOriginPos().distanceToSqr(portal.getDestPos()) < 0.1) &&
-                e.getContentDirection().dot(portal.getNormal()) > 0.6
+                e.getContentDirection().dot(portal.getUnitVec3i()) > 0.6
         );
         return revs;
     }

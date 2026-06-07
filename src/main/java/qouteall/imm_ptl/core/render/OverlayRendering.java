@@ -70,7 +70,7 @@ public class OverlayRendering {
     }
     
     public static List<BakedQuad> getQuads(BakedModel model, BlockState blockState, Vec3 portalNormal) {
-        Direction facing = Direction.getNearest(portalNormal.x, portalNormal.y, portalNormal.z);
+        Direction facing = Direction.getApproximateNearest(portalNormal.x, portalNormal.y, portalNormal.z);
         
         List<BakedQuad> result = new ArrayList<>();
         
@@ -123,17 +123,17 @@ public class OverlayRendering {
         
         matrixStack.pushPose();
         
-        Vec3 offset = portal.getNormal().scale(overlay.offset());
+        Vec3 offset = portal.getUnitVec3i().scale(overlay.offset());
         
         Vec3 pos = portal.position();
         
         matrixStack.translate(offset.x, offset.y, offset.z);
         
         BakedModel model = blockRenderManager.getBlockModel(blockState);
-        RenderType renderLayer = Sheets.translucentCullBlockSheet();
+        RenderType renderLayer = Sheets.cutoutBlockSheet();
         VertexConsumer buffer = vertexConsumerProvider.getBuffer(renderLayer);
         
-        List<BakedQuad> quads = getQuads(model, blockState, portal.getNormal());
+        List<BakedQuad> quads = getQuads(model, blockState, portal.getUnitVec3i());
         
         random.setSeed(0);
         

@@ -18,6 +18,8 @@ import qouteall.imm_ptl.core.render.context_management.RenderStates;
 
 import java.util.Comparator;
 
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
+
 @Environment(EnvType.CLIENT)
 public class CrossPortalSound {
     public static final float VOLUME_RADIUS_MULT = 16f;
@@ -43,7 +45,7 @@ public class CrossPortalSound {
             return null;
         }
         
-        soundWorld.getProfiler().push("cross_portal_sound");
+        getProfiler().push("cross_portal_sound");
         
         double soundRadius = Math.min(64, Math.max(VOLUME_RADIUS_MULT * soundVol, MIN_SOUND_RADIUS));
         Vec3 playerCameraPos = RenderStates.originalPlayerPos.add(
@@ -86,7 +88,7 @@ public class CrossPortalSound {
             }
         ).orElse(null);
         
-        soundWorld.getProfiler().pop();
+        getProfiler().pop();
         
         return result;
     }

@@ -1,15 +1,19 @@
 package qouteall.imm_ptl.core.mixin.client.render.optimization;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexBuffer;
+import net.minecraft.client.CloudStatus;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.CloudRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -21,52 +25,51 @@ import qouteall.imm_ptl.core.render.context_management.RenderStates;
 
 // Optimize cloud rendering by storing the context and
 // avoiding rebuild the cloud mesh every time
-@Mixin(LevelRenderer.class)
+@Mixin(CloudRenderer.class)
 public abstract class MixinLevelRenderer_Clouds {
     
     @Shadow
-    private int prevCloudX;
+    private int prevCellX;
+
+    private int prevCloudY = 1;
     
     @Shadow
-    private int prevCloudY;
+    private int prevCellZ;
     
-    @Shadow
-    private int prevCloudZ;
-    
+    @Mutable
+    @Final
     @Shadow
     @Nullable
-    private VertexBuffer cloudBuffer;
+    public VertexBuffer vertexBuffer;
+
+    private ClientLevel level = Minecraft.getInstance().level;
     
     @Shadow
-    private ClientLevel level;
+    private boolean vertexBufferEmpty;
     
-    @Shadow
-    private boolean generateClouds;
-    
-    @Shadow
-    private int ticks;
+    private int ticks = 1;
     
     @Inject(
-        method = "renderClouds",
+        method = "render",
         at = @At("HEAD")
     )
     private void onBeginRenderClouds(
-        PoseStack poseStack, Matrix4f projectionMatrix, Matrix4f frustrumMatrix, float partialTick, double camX, double camY, double camZ, CallbackInfo ci
+            int i, CloudStatus cloudStatus, float f, Matrix4f matrix4f, Matrix4f matrix4f2, Vec3 cameraPos, float partialTick, CallbackInfo ci
     ) {
         if (RenderStates.getRenderedPortalNum() == 0) {
             return;
         }
         
         if (IPGlobal.cloudOptimization) {
-            portal_onBeginCloudRendering(partialTick, camX, camY, camZ);
+            portal_onBeginCloudRendering(partialTick, cameraPos.x, cameraPos.y, cameraPos.z);
         }
     }
     
     @Inject(
-        method = "renderClouds",
+        method = "render",
         at = @At("RETURN")
     )
-    private void onEndRenderClouds(PoseStack poseStack, Matrix4f projectionMatrix, Matrix4f frustrumMatrix, float partialTick, double camX, double camY, double camZ, CallbackInfo ci) {
+    private void onEndRenderClouds(int i, CloudStatus cloudStatus, float f, Matrix4f matrix4f, Matrix4f matrix4f2, Vec3 vec3, float g, CallbackInfo ci) {
         if (RenderStates.getRenderedPortalNum() == 0) {
             return;
         }
@@ -77,28 +80,28 @@ public abstract class MixinLevelRenderer_Clouds {
     }
     
     private void portal_yieldCloudContext(CloudContext context) {
-        Vec3 cloudsColor = this.level.getCloudColor(RenderStates.getPartialTick());
+        Vec3 cloudsColor = this.getCloudColor(this.level, RenderStates.getPartialTick());
         
-        context.lastCloudsBlockX = prevCloudX;
+        context.lastCloudsBlockX = prevCellX;
         context.lastCloudsBlockY = prevCloudY;
-        context.lastCloudsBlockZ = prevCloudZ;
-        context.cloudsBuffer = cloudBuffer;
+        context.lastCloudsBlockZ = prevCellZ;
+        context.cloudsBuffer = vertexBuffer;
         context.dimension = level.dimension();
         context.cloudColor = cloudsColor;
         
-        cloudBuffer = null;
-        generateClouds = true;
+        vertexBuffer = null;
+        vertexBufferEmpty = true;
     }
     
     private void portal_loadCloudContext(CloudContext context) {
         Validate.isTrue(context.dimension == level.dimension());
         
-        prevCloudX = context.lastCloudsBlockX;
+        prevCellX = context.lastCloudsBlockX;
         prevCloudY = context.lastCloudsBlockY;
-        prevCloudZ = context.lastCloudsBlockZ;
-        cloudBuffer = context.cloudsBuffer;
+        prevCellZ = context.lastCloudsBlockZ;
+        vertexBuffer = context.cloudsBuffer;
         
-        generateClouds = false;
+        vertexBufferEmpty = false;
     }
     
     /**
@@ -121,7 +124,7 @@ public abstract class MixinLevelRenderer_Clouds {
         float l = (float) (i - (double) Mth.floor(i));
         float m = (float) (j / 4.0D - (double) Mth.floor(j / 4.0D)) * 4.0F;
         float n = (float) (k - (double) Mth.floor(k));
-        Vec3 cloudsColor = this.level.getCloudColor(partialTick);
+        Vec3 cloudsColor = this.getCloudColor(this.level, partialTick);
         int kx = (int) Math.floor(i);
         int ky = (int) Math.floor(j / 4.0D);
         int kz = (int) Math.floor(k);
@@ -136,11 +139,42 @@ public abstract class MixinLevelRenderer_Clouds {
     }
     
     private void portal_onEndCloudRendering() {
-        if (!generateClouds) {
+        if (!vertexBufferEmpty) {
             final CloudContext newContext = new CloudContext();
             portal_yieldCloudContext(newContext);
             
             CloudContext.appendContext(newContext);
         }
+    }
+
+    public Vec3 getCloudColor(ClientLevel this_, float f) {
+        float g = this_.getTimeOfDay(f);
+        float h = Mth.cos(g * ((float)Math.PI * 2F)) * 2.0F + 0.5F;
+        h = Mth.clamp(h, 0.0F, 1.0F);
+        float i = 1.0F;
+        float j = 1.0F;
+        float k = 1.0F;
+        float l = this_.getRainLevel(f);
+        if (l > 0.0F) {
+            float m = (i * 0.3F + j * 0.59F + k * 0.11F) * 0.6F;
+            float n = 1.0F - l * 0.95F;
+            i = i * n + m * (1.0F - n);
+            j = j * n + m * (1.0F - n);
+            k = k * n + m * (1.0F - n);
+        }
+
+        i *= h * 0.9F + 0.1F;
+        j *= h * 0.9F + 0.1F;
+        k *= h * 0.85F + 0.15F;
+        float m = this_.getThunderLevel(f);
+        if (m > 0.0F) {
+            float n = (i * 0.3F + j * 0.59F + k * 0.11F) * 0.2F;
+            float o = 1.0F - m * 0.95F;
+            i = i * o + n * (1.0F - o);
+            j = j * o + n * (1.0F - o);
+            k = k * o + n * (1.0F - o);
+        }
+
+        return new Vec3((double)i, (double)j, (double)k);
     }
 }

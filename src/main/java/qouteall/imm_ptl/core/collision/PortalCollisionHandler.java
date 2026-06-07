@@ -26,6 +26,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
+
 public class PortalCollisionHandler {
     private static final int maxCollidingPortals = 6;
     
@@ -76,7 +78,7 @@ public class PortalCollisionHandler {
             return attemptedMove;
         }
         
-        entity.level().getProfiler().push("cross_portal_collision");
+        getProfiler().push("cross_portal_collision");
         
         portalCollisions.sort(
             Comparator.comparingLong((PortalCollisionEntry p) -> p.activeTime).reversed()
@@ -84,7 +86,7 @@ public class PortalCollisionHandler {
         
         Vec3 result = doHandleCollision(entity, attemptedMove, 1, portalCollisions, entity.getBoundingBox());
         
-        entity.level().getProfiler().pop();
+        getProfiler().pop();
         
         return result;
     }

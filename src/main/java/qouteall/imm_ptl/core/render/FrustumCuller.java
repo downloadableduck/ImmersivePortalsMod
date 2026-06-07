@@ -218,7 +218,7 @@ public class FrustumCuller {
             getFrustumPlanesFromFourVerticesCounterClockwise(vTransformed);
         
         Plane portalPlane = new Plane(
-            portal.getOriginPos().subtract(cameraPos), portal.getNormal()
+            portal.getOriginPos().subtract(cameraPos), portal.getUnitVec3i()
         );
         
         float portalPlaneX = (float) portalPlane.getEquationX();

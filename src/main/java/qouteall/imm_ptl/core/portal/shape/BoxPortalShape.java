@@ -194,7 +194,7 @@ public final class BoxPortalShape implements PortalShape {
     ) {
         Vec3 localHX = portalState.getAxisW().scale(portalState.width() / 2);
         Vec3 localHY = portalState.getAxisH().scale(portalState.height() / 2);
-        Vec3 localHZ = portalState.getNormal().scale(portalState.thickness() / 2);
+        Vec3 localHZ = portalState.getUnitVec3i().scale(portalState.thickness() / 2);
         
         ViewAreaRenderer.outputFullQuad(
             vertexOutput,

@@ -58,6 +58,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
+
 @Environment(EnvType.CLIENT)
 public class ClientTeleportationManager {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -139,7 +141,7 @@ public class ClientTeleportationManager {
             return;
         }
         
-        client.getProfiler().push("ip_teleport");
+        getProfiler().push("ip_teleport");
         
         ClientPortalAnimationManagement.foreachCustomAnimatedPortals(
             portal -> {
@@ -199,7 +201,7 @@ public class ClientTeleportationManager {
         lastRecordStableTickTime = StableClientTimer.getStableTickTime();
         lastRecordStablePartialTicks = StableClientTimer.getStablePartialTicks();
         
-        client.getProfiler().pop();
+        getProfiler().pop();
     }
     
     private static record TeleportationRec(
@@ -291,9 +293,9 @@ public class ClientTeleportationManager {
             Portal portal = teleportation.portal();
             Vec3 collidingPos = teleportation.worldCollisionPoint();
             
-            client.getProfiler().push("portal_teleport");
+            getProfiler().push("portal_teleport");
             teleportPlayer(teleportation, partialTicks);
-            client.getProfiler().pop();
+            getProfiler().pop();
             
             boolean allowOverlappedTeleport = portal.respectParallelOrientedPortal();
             
@@ -403,7 +405,7 @@ public class ClientTeleportationManager {
                 portal, tickTimeForTeleportation, isTicking, teleportationCounter,
                 teleportation.lastWorldEyePos(), teleportation.currentWorldEyePos(), partialTicks,
                 teleportation.newLastTickEyePos().lerp(teleportation.newThisTickEyePos(), partialTick),
-                portal.getOriginPos(), portal.getNormal(),
+                portal.getOriginPos(), portal.getUnitVec3i(),
                 portal.getDestPos(), portal.getContentDirection()
             );
         }
@@ -634,7 +636,7 @@ public class ClientTeleportationManager {
             return;
         }
         
-        Vec3 levitationVec = Vec3.atLowerCornerOf(levitationDir.getNormal());
+        Vec3 levitationVec = Vec3.atLowerCornerOf(levitationDir.getUnitVec3i());
         
         Vec3 offset = levitationVec.scale(delta);
         

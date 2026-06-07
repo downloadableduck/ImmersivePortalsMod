@@ -27,6 +27,7 @@ import static org.lwjgl.opengl.GL11.GL_KEEP;
 import static org.lwjgl.opengl.GL11.GL_LESS;
 import static org.lwjgl.opengl.GL11.GL_REPLACE;
 import static org.lwjgl.opengl.GL11.GL_STENCIL_TEST;
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
 
 public class RendererUsingStencil extends PortalRenderer {
     
@@ -57,7 +58,7 @@ public class RendererUsingStencil extends PortalRenderer {
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(true);
         
-        client.getProfiler().popPush("render_portal_total");
+        getProfiler().popPush("render_portal_total");
         renderPortals(modelView);
         if (PortalRendering.isRendering()) {
             setStencilStateForWorldRendering();
@@ -130,13 +131,13 @@ public class RendererUsingStencil extends PortalRenderer {
         
         int outerPortalStencilValue = PortalRendering.getPortalLayer();
         
-        client.getProfiler().push("render_view_area");
+        getProfiler().push("render_view_area");
         
         boolean anySamplePassed = PortalRenderInfo.renderAndDecideVisibility(portal, () -> {
             renderPortalViewAreaToStencil(portal, modelView);
         });
         
-        client.getProfiler().pop();
+        getProfiler().pop();
         
         if (!anySamplePassed) {
             setStencilStateForWorldRendering();
@@ -148,9 +149,9 @@ public class RendererUsingStencil extends PortalRenderer {
         int thisPortalStencilValue = outerPortalStencilValue + 1;
         
         if (!portal.isFuseView()) {
-            client.getProfiler().push("clear_depth_of_view_area");
+           getProfiler().push("clear_depth_of_view_area");
             clearDepthOfThePortalViewArea(portal);
-            client.getProfiler().pop();
+            getProfiler().pop();
         }
         
         setStencilStateForWorldRendering();

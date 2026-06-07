@@ -1,7 +1,9 @@
 package qouteall.imm_ptl.core.mixin.client.render.shader;
 
 import com.mojang.blaze3d.preprocessor.GlslPreprocessor;
-import com.mojang.blaze3d.shaders.Program;
+import com.mojang.blaze3d.shaders.CompiledShader;
+import net.minecraft.client.renderer.CompiledShaderProgram;
+import net.minecraft.resources.ResourceLocation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.Validate;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,54 +18,52 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Objects;
 
-@Mixin(value = Program.class)
+@Mixin(value = CompiledShader.class)
 public class MixinProgram {
     // The redirect uses method arguments.
     // Iris also injects that method and uses local capture, so cannot overwrite.
-    private static final ThreadLocal<Program.Type> ip_programType = new ThreadLocal<>();
+    private static final ThreadLocal<CompiledShader.Type> ip_programType = new ThreadLocal<>();
     private static final ThreadLocal<String> ip_programName = new ThreadLocal<>();
     
     @Inject(
-        method = "compileShaderInternal",
+        method = "compile",
         at = @At("HEAD")
     )
     private static void onBeginCompileShaderInternal(
-        Program.Type type, String name, InputStream shaderData,
-        String sourceName, GlslPreprocessor preprocessor, CallbackInfoReturnable<Integer> cir
+            ResourceLocation resourceLocation, CompiledShader.Type type, String string, CallbackInfoReturnable<CompiledShader> cir
     ) {
         Validate.isTrue(ip_programType.get() == null);
         Validate.isTrue(ip_programName.get() == null);
         ip_programType.set(type);
-        ip_programName.set(name);
+        ip_programName.set(string);
     }
     
     @Inject(
-        method = "compileShaderInternal",
+        method = "compile",
         at = @At("RETURN")
     )
     private static void onEndCompileShaderInternal(
-        Program.Type type, String name, InputStream shaderData,
-        String sourceName, GlslPreprocessor preprocessor, CallbackInfoReturnable<Integer> cir
+            ResourceLocation resourceLocation, CompiledShader.Type type, String string, CallbackInfoReturnable<CompiledShader> cir
     ) {
         Validate.isTrue(ip_programType.get() == type);
-        Validate.isTrue(Objects.equals(ip_programName.get(), name));
+        Validate.isTrue(Objects.equals(ip_programName.get(), string));
         ip_programType.set(null);
         ip_programName.set(null);
     }
     
     @Redirect(
-        method = "compileShaderInternal",
+        method = "compile",
         at = @At(
             value = "INVOKE",
-            target = "Lorg/apache/commons/io/IOUtils;toString(Ljava/io/InputStream;Ljava/nio/charset/Charset;)Ljava/lang/String;",
+            target = "Lcom/mojang/blaze3d/shaders/CompiledShader$Type;getName()Ljava/lang/String;",
             remap = false
         )
     )
     private static String redirectReadShaderSource(
-        InputStream inputStream, Charset charset
+            CompiledShader.Type instance
     ) throws IOException {
-        String shaderCode = IOUtils.toString(inputStream, charset);
-        Program.Type type = ip_programType.get();
+        String shaderCode = instance.getName();
+        CompiledShader.Type type = ip_programType.get();
         String name = ip_programName.get();
         Validate.notNull(type);
         Validate.notNull(name);

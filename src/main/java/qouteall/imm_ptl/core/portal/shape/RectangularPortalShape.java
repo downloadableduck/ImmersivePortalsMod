@@ -113,7 +113,7 @@ public final class RectangularPortalShape implements PortalShape {
     public Plane getOuterClipping(UnilateralPortalState portalState) {
         return new Plane(
             portalState.position(),
-            portalState.getNormal()
+            portalState.getUnitVec3i()
         );
     }
     
@@ -124,7 +124,7 @@ public final class RectangularPortalShape implements PortalShape {
     ) {
         return new Plane(
             otherSideState.position(),
-            otherSideState.getNormal()
+            otherSideState.getUnitVec3i()
         );
     }
     
@@ -202,7 +202,7 @@ public final class RectangularPortalShape implements PortalShape {
         AABB originalBoundingBox = entity.getBoundingBox();
         
         return PortalCollisionHandler.getMovementForPushingEntityOutOfPortal(
-            attemptedMove, portalState.position(), portalState.getNormal(), originalBoundingBox
+            attemptedMove, portalState.position(), portalState.getUnitVec3i(), originalBoundingBox
         );
     }
     
@@ -261,7 +261,7 @@ public final class RectangularPortalShape implements PortalShape {
         UnilateralPortalState portalState
     ) {
         AABB thinAreaBox = getBoundingBox(portalState, true, 0);
-        Vec3 reaching = portalState.getNormal().scale(-10);
+        Vec3 reaching = portalState.getUnitVec3i().scale(-10);
         AABB exclusion = thinAreaBox.minmax(thinAreaBox.move(reaching));
         return Shapes.create(exclusion);
     }
@@ -269,7 +269,7 @@ public final class RectangularPortalShape implements PortalShape {
     @Override
     public @Nullable AABB transformEntityActiveCollisionBox(Portal portal, AABB box, Entity entity) {
         return CollisionHelper.clipBox(
-            box, portal.getOriginPos(), portal.getNormal()
+            box, portal.getOriginPos(), portal.getUnitVec3i()
         );
     }
 }

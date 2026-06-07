@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
+
 public class CollisionHelper {
     
     private static final LimitedLogger limitedLogger = new LimitedLogger(20);
@@ -401,7 +403,7 @@ public class CollisionHelper {
     }
     
     public static void updateCollidingPortalForWorld(Level world, float partialTick) {
-        world.getProfiler().push("update_colliding_portal");
+        getProfiler().push("update_colliding_portal");
         
         List<Portal> globalPortals = GlobalPortalStorage.getGlobalPortals(world);
         Iterable<Entity> worldEntityList = McHelper.getWorldEntityList(world);
@@ -425,7 +427,7 @@ public class CollisionHelper {
             }
         }
         
-        world.getProfiler().pop();
+        getProfiler().pop();
     }
     
     public static void init() {

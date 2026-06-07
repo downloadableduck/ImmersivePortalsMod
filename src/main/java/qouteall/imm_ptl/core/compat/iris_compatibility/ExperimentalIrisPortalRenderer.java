@@ -31,6 +31,7 @@ import static org.lwjgl.opengl.GL11.GL_KEEP;
 import static org.lwjgl.opengl.GL11.GL_LESS;
 import static org.lwjgl.opengl.GL11.GL_REPLACE;
 import static org.lwjgl.opengl.GL11.GL_STENCIL_TEST;
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
 
 // Iris now use the vanilla framebuffer's depth texture and support stencil
 // So a better portal rendering method for forward-shading shaders is possible
@@ -164,7 +165,7 @@ public class ExperimentalIrisPortalRenderer extends PortalRenderer {
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(true);
         
-        client.getProfiler().popPush("render_portal_total");
+        getProfiler().popPush("render_portal_total");
         renderPortals(modelView);
     }
     
@@ -217,13 +218,13 @@ public class ExperimentalIrisPortalRenderer extends PortalRenderer {
         
         int outerPortalStencilValue = PortalRendering.getPortalLayer();
         
-        client.getProfiler().push("render_view_area");
+        getProfiler().push("render_view_area");
         
         boolean anySamplePassed = PortalRenderInfo.renderAndDecideVisibility(portal, () -> {
             renderPortalViewAreaToStencil(portal, modelView);
         });
         
-        client.getProfiler().pop();
+        getProfiler().pop();
         
         if (!anySamplePassed) {
             setStencilStateForWorldRendering();
@@ -235,9 +236,9 @@ public class ExperimentalIrisPortalRenderer extends PortalRenderer {
         int thisPortalStencilValue = outerPortalStencilValue + 1;
         
         if (!portal.isFuseView()) {
-            client.getProfiler().push("clear_depth_of_view_area");
+            getProfiler().push("clear_depth_of_view_area");
             clearDepthOfThePortalViewArea(portal);
-            client.getProfiler().pop();
+           getProfiler().pop();
         }
         
         setStencilStateForWorldRendering();

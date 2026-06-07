@@ -2,15 +2,18 @@ package qouteall.imm_ptl.core.portal;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.*;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -22,6 +25,8 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import qouteall.imm_ptl.core.McHelper;
 import qouteall.imm_ptl.core.portal.nether_portal.BreakablePortalEntity;
+
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
 
 public class PortalPlaceholderBlock extends Block {
     public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.AXIS;
@@ -51,13 +56,14 @@ public class PortalPlaceholderBlock extends Block {
     );
     
     public static final PortalPlaceholderBlock instance = new PortalPlaceholderBlock(
-        FabricBlockSettings.create()
+        BlockBehaviour.Properties.of()
             .noCollission()
             .sound(SoundType.GLASS)
             .strength(1.0f, 0)
             .noOcclusion()
             .noLootTable()
             .lightLevel((s) -> 15)
+                .setId(ResourceKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("immersive_portals", "portal_placeholder")))
     );
     
     public PortalPlaceholderBlock(Properties properties) {
@@ -92,17 +98,20 @@ public class PortalPlaceholderBlock extends Block {
     @Override
     public BlockState updateShape(
         BlockState thisState,
-        Direction direction,
-        BlockState neighborState,
-        LevelAccessor worldAccess,
+        LevelReader levelReader,
+        ScheduledTickAccess scheduledTickAccess,
         BlockPos blockPos,
-        BlockPos neighborPos
+        Direction direction,
+        BlockPos neighborPos,
+        BlockState neighborState,
+        RandomSource randomSource
     ) {
+        LevelAccessor worldAccess = Minecraft.getInstance().level;
         if (!worldAccess.isClientSide()) {
             if (worldAccess instanceof Level) {
                 Level world = (Level) worldAccess;
                 
-                world.getProfiler().push("portal_placeholder");
+                getProfiler().push("portal_placeholder");
                 
                 Direction.Axis axis = thisState.getValue(AXIS);
                 if (direction.getAxis() != axis) {
@@ -119,18 +128,12 @@ public class PortalPlaceholderBlock extends Block {
                     );
                 }
                 
-                world.getProfiler().pop();
+                getProfiler().pop();
             }
         }
         
         return super.updateShape(
-            thisState,
-            direction,
-            neighborState,
-            worldAccess,
-            blockPos,
-            neighborPos
-        );
+            thisState, levelReader, scheduledTickAccess, blockPos, direction, neighborPos, neighborState, randomSource);
     }
     
     public static boolean isHitOnPlaceholder(HitResult hitResult, Level world) {
@@ -146,9 +149,7 @@ public class PortalPlaceholderBlock extends Block {
     //---------These are copied from BlockBarrier
     @Override
     public boolean propagatesSkylightDown(
-        BlockState blockState_1,
-        BlockGetter blockView_1,
-        BlockPos blockPos_1
+        BlockState blockState_1
     ) {
         return true;
     }

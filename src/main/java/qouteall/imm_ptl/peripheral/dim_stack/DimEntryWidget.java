@@ -119,11 +119,11 @@ public class DimEntryWidget extends ContainerObjectSelectionList.Entry<DimEntryW
                 );
             }
             
-            guiGraphics.blit(
+            /*guiGraphics.blit(
                 dimIconPath, 0, 0, 0.0F, 0.0F,
                 iconLen, iconLen,
                 iconLen, iconLen
-            );
+            );*/
             
             guiGraphics.pose().popPose();
         }

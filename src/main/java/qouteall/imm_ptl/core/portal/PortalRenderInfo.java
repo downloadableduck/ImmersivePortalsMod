@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
+
 // A portal's rendering related things
 // to access the package private field of Portal, this class is not in "render" package
 @SuppressWarnings("resource")
@@ -210,7 +212,7 @@ public class PortalRenderInfo implements AutoCloseable {
     }
     
     public static boolean renderAndDecideVisibility(Portal portal, Runnable queryRendering) {
-        ProfilerFiller profiler = Minecraft.getInstance().getProfiler();
+        ProfilerFiller profiler = getProfiler();
         
         boolean decision;
         if (IPGlobal.offsetOcclusionQuery) {

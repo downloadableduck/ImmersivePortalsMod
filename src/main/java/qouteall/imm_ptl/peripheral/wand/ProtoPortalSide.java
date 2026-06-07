@@ -51,7 +51,7 @@ public class ProtoPortalSide {
         return leftTop.subtract(leftBottom);
     }
     
-    public Vec3 getNormal() {
+    public Vec3 getUnitVec3i() {
         return getHorizontalAxis().cross(getVerticalAxis()).normalize();
     }
     

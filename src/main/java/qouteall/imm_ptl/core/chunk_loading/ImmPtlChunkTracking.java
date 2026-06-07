@@ -34,6 +34,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
+
 public class ImmPtlChunkTracking {
     
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -360,7 +362,7 @@ public class ImmPtlChunkTracking {
     }
     
     private static void tick(MinecraftServer server) {
-        server.getProfiler().push("portal_chunk_tracking");
+        getProfiler().push("portal_chunk_tracking");
         
         boolean updates = false;
         long gameTime = server.overworld().getGameTime();
@@ -389,7 +391,7 @@ public class ImmPtlChunkTracking {
             dimTicketManager.tick(world);
         }
         
-        server.getProfiler().pop();
+        getProfiler().pop();
         
         if (updates) {
             EntitySync.update(server);

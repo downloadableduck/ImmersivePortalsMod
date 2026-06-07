@@ -35,7 +35,7 @@ public class Mirror extends Portal {
     }
     
     public Vec3 getMirrored(Vec3 vec) {
-        Vec3 normal = getNormal();
+        Vec3 normal = getUnitVec3i();
         return mirroredVec(vec, normal);
     }
     
@@ -56,7 +56,7 @@ public class Mirror extends Portal {
         DQuaternion rot = getRotationD();
         return new Matrix4d()
             .translation(destPos.x, destPos.y, destPos.z)
-            .reflect(getNormal().x, getNormal().y, getNormal().z, 0)
+            .reflect(getUnitVec3i().x, getUnitVec3i().y, getUnitVec3i().z, 0)
             .scale(getScale())
             .rotate(rot.toMcQuaternion())
             .translate(-originPos.x, -originPos.y, -originPos.z);
@@ -73,7 +73,7 @@ public class Mirror extends Portal {
      */
     public void setRotationTransformationForMirror(DQuaternion visualRotation) {
         Matrix3d mirrorTrans = new Matrix3d().reflect(
-            getNormal().x, getNormal().y, getNormal().z
+            getUnitVec3i().x, getUnitVec3i().y, getUnitVec3i().z
         );
         Matrix3d visualRotationTrans = new Matrix3d().rotate(visualRotation.toMcQuaternion());
         Matrix3d newRotation = new Matrix3d().mul(visualRotationTrans).mul(mirrorTrans);

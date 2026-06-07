@@ -1,7 +1,5 @@
 package qouteall.imm_ptl.core.compat;
 
-import gravity_changer.api.GravityChangerAPI;
-import gravity_changer.util.RotationUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -94,22 +92,22 @@ public class GravityChangerInterface {
         
         @Override
         public Vec3 getEyeOffset(Entity entity) {
-            return GravityChangerAPI.getEyeOffset(entity);
+            return entity.getEyePosition();
         }
         
         @Override
         public Direction getGravityDirection(Entity entity) {
-            return GravityChangerAPI.getGravityDirection(entity);
+            return entity.getDirection();
         }
         
         @Override
         public Direction getBaseGravityDirection(Entity entity) {
-            return GravityChangerAPI.getBaseGravityDirection(entity);
+            return entity.getDirection();
         }
         
         @Override
         public void setBaseGravityDirectionServer(Entity entity, Direction direction) {
-            GravityChangerAPI.setBaseGravityDirection(entity, direction);
+            entity.setDeltaMovement(direction.getUnitVec3());
         }
         
         @Override
@@ -123,7 +121,7 @@ public class GravityChangerInterface {
         ) {
             Validate.isTrue(Minecraft.getInstance().isSameThread());
             
-            GravityChangerAPI.instantlySetClientBaseGravityDirection(player, direction);
+            //GravityChangerAPI.instantlySetClientBaseGravityDirection(player, direction);
         }
         
         @Nullable
@@ -133,37 +131,7 @@ public class GravityChangerInterface {
                 return null;
             }
             
-            return DQuaternion.fromMcQuaternion(RotationUtil.getWorldRotationQuaternion(gravityDirection));
-        }
-        
-        @Override
-        public Vec3 getWorldVelocity(Entity entity) {
-            return GravityChangerAPI.getWorldVelocity(entity);
-        }
-        
-        @Override
-        public void setWorldVelocity(Entity entity, Vec3 newVelocity) {
-            GravityChangerAPI.setWorldVelocity(entity, newVelocity);
-        }
-        
-        @Override
-        public Vec3 transformPlayerToWorld(Direction gravity, Vec3 vec3d) {
-            return RotationUtil.vecPlayerToWorld(vec3d, gravity);
-        }
-        
-        @Override
-        public Vec3 transformWorldToPlayer(Direction gravity, Vec3 vec3d) {
-            return RotationUtil.vecWorldToPlayer(vec3d, gravity);
-        }
-        
-        @Override
-        public Direction transformDirPlayerToWorld(Direction gravity, Direction direction) {
-            return RotationUtil.dirPlayerToWorld(direction, gravity);
-        }
-        
-        @Override
-        public Direction transformDirWorldToPlayer(Direction gravity, Direction direction) {
-            return RotationUtil.dirWorldToPlayer(direction, gravity);
+            return new DQuaternion(gravityDirection.getStepX(), gravityDirection.getStepY(), gravityDirection.getStepZ(), 0) ;//DQuaternion.fromMcQuaternion(RotationUtil.getWorldRotationQuaternion(gravityDirection));
         }
     }
 }

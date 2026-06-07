@@ -10,6 +10,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -49,6 +50,8 @@ import java.util.UUID;
 import java.util.WeakHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
 
 public class ServerTeleportationManager {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -118,9 +121,9 @@ public class ServerTeleportationManager {
         if (entity.isRemoved()) {
             return;
         }
-        if (!entity.canChangeDimensions(entity.level(), portal.getDestinationWorld())) {
+        /*if (!entity.canChangeDimensions(entity.level(), portal.getDestinationWorld())) {
             return;
-        }
+        }*/
         if (isJustTeleported(entity, 1)) {
             return;
         }
@@ -332,7 +335,7 @@ public class ServerTeleportationManager {
         Vec3 newEyePos
     ) {
         MinecraftServer server = player.server;
-        server.getProfiler().push("portal_teleport");
+        getProfiler().push("portal_teleport");
         
         ServerLevel fromWorld = (ServerLevel) player.level();
         ServerLevel toWorld = server.getLevel(dimensionTo);
@@ -354,7 +357,7 @@ public class ServerTeleportationManager {
             player, newEyePos, newEyePos, 1
         );
         
-        server.getProfiler().pop();
+        getProfiler().pop();
     }
     
     public void forceTeleportPlayer(
@@ -642,7 +645,7 @@ public class ServerTeleportationManager {
         if (recreateEntity) {
             Entity oldEntity = entity;
             Entity newEntity;
-            newEntity = entity.getType().create(toWorld);
+            newEntity = entity.getType().create(toWorld, EntitySpawnReason.EVENT);
             if (newEntity == null) {
                 return oldEntity;
             }
@@ -690,7 +693,7 @@ public class ServerTeleportationManager {
         
         Entity oldEntity = entity;
         Entity newEntity;
-        newEntity = entity.getType().create(toWorld);
+        newEntity = entity.getType().create(toWorld, EntitySpawnReason.EVENT);
         Validate.isTrue(newEntity != null);
         
         newEntity.restoreFrom(oldEntity);
@@ -785,7 +788,7 @@ public class ServerTeleportationManager {
         Portal portal,
         Mob chaser
     ) {
-        Vec3 targetPos = player.position().add(portal.getNormal().scale(-0.1));
+        Vec3 targetPos = player.position().add(portal.getUnitVec3i().scale(-0.1));
         
         UUID chaserId = chaser.getUUID();
         ServerLevel destWorld = ((ServerLevel) portal.getDestinationWorld());

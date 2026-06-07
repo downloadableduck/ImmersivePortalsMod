@@ -297,7 +297,7 @@ public class TeleportationUtil {
             portalPointVelocities.stream()
                 .map(v -> v.thisSidePointVelocity)
                 .max(Comparator.comparingDouble(
-                    p -> p.dot(lastTickState.getNormal())
+                    p -> p.dot(lastTickState.getUnitVec3i())
                 ))
                 .orElseThrow(),
             portalPointVelocities.stream()

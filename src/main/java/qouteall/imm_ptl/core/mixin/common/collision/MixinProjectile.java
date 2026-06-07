@@ -8,6 +8,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
+import java.util.UUID;
+
 @Mixin(Projectile.class)
 public abstract class MixinProjectile extends MixinEntity {
     
@@ -16,16 +18,15 @@ public abstract class MixinProjectile extends MixinEntity {
         method = "getOwner",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/server/level/ServerLevel;getEntity(Ljava/util/UUID;)Lnet/minecraft/world/entity/Entity;"
+            target = "Lnet/minecraft/world/entity/projectile/Projectile;findOwner(Ljava/util/UUID;)Lnet/minecraft/world/entity/Entity;"
         )
     )
     private Entity redirectGetEntityFromUuid(
-        net.minecraft.server.level.ServerLevel serverLevel,
-        java.util.UUID uuid
+            Projectile instance, UUID uUID
     ) {
-        MinecraftServer server = serverLevel.getServer();
+        MinecraftServer server = instance.level().getServer();
         for (ServerLevel world : server.getAllLevels()) {
-            Entity entity = world.getEntity(uuid);
+            Entity entity = world.getEntity(uUID);
             if (entity != null) {
                 return entity;
             }

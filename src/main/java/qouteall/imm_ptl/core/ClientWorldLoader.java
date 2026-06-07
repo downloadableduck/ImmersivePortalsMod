@@ -50,6 +50,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static qouteall.imm_ptl.core.CHelper.getProfiler;
+
 @SuppressWarnings("resource")
 @Environment(EnvType.CLIENT)
 public class ClientWorldLoader {
@@ -397,7 +399,7 @@ public class ClientWorldLoader {
         
         isCreatingClientWorld = true;
         
-        CLIENT.getProfiler().push("create_world");
+        getProfiler().push("create_world");
         
         int chunkLoadDistance = 3; // my own chunk manager doesn't need it
         
@@ -432,8 +434,8 @@ public class ClientWorldLoader {
             int simulationDistance = CLIENT.level.getServerSimulationDistance();
             
             Holder<DimensionType> dimensionType = registryManager
-                .registryOrThrow(Registries.DIMENSION_TYPE)
-                .getHolderOrThrow(dimensionTypeKey);
+                .lookupOrThrow(Registries.DIMENSION_TYPE)
+                    .getOrThrow(dimensionTypeKey);
             
             // currently use a separated level data object
             // day time is not shared between worlds
@@ -449,10 +451,10 @@ public class ClientWorldLoader {
                 dimensionType,
                 chunkLoadDistance,
                 simulationDistance,// seems that client world does not use this
-                CLIENT::getProfiler,
                 worldRenderer,
-                CLIENT.level.isDebug(),
-                CLIENT.level.getBiomeManager().biomeZoomSeed
+                    CLIENT.level.isDebug(),
+                CLIENT.level.getBiomeManager().biomeZoomSeed,
+                    CLIENT.level.getSeaLevel()
             );
             
             // all worlds share the same map data map
@@ -478,7 +480,7 @@ public class ClientWorldLoader {
         }
         finally {
             isCreatingClientWorld = false;
-            CLIENT.getProfiler().pop();
+            getProfiler().pop();
         }
         
         CLIENT_WORLD_LOAD_EVENT.invoker().accept(newWorld);
@@ -613,13 +615,13 @@ public class ClientWorldLoader {
             LocalPlayer player = Minecraft.getInstance().player;
             assert player != null;
             RegistryAccess registryAccess = player.connection.registryAccess();
-            Registry<Biome> biomes = registryAccess.registryOrThrow(Registries.BIOME);
+            Registry<Biome> biomes = registryAccess.lookupOrThrow(Registries.BIOME);
             
             for (Map.Entry<String, Integer> entry : idMap.entrySet()) {
                 ResourceLocation id = McHelper.newResourceLocation(entry.getKey());
                 int expectedId = entry.getValue();
                 
-                if (biomes.getId(biomes.get(id)) != expectedId) {
+                if (biomes.getId(biomes.get(id).get().value()) != expectedId) {
                     LOGGER.error("Biome id mismatch: {} {}", id, expectedId);
                 }
             }
