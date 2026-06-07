@@ -58,7 +58,7 @@ public abstract class MixinTrackedEntity implements IETrackedEntity {
     @Shadow
     private SectionPos lastSectionPos;
     
-    @Redirect(
+    /*@Redirect(
         method = "Lnet/minecraft/server/level/ChunkMap$TrackedEntity;broadcast(Lnet/minecraft/network/protocol/Packet;)V",
         at = @At(
             value = "INVOKE",
@@ -91,7 +91,7 @@ public abstract class MixinTrackedEntity implements IETrackedEntity {
         PacketRedirection.sendRedirectedPacket(
             serverPlayNetworkHandler, packet, entity.level().dimension()
         );
-    }
+    }*/
     
     /**
      * @author qouteall
@@ -251,7 +251,7 @@ public abstract class MixinTrackedEntity implements IETrackedEntity {
         
         Packet spawnPacket = entity.getAddEntityPacket(serverEntity);
         Packet<ClientGamePacketListener> redirected = PacketRedirection.createRedirectedMessage(
-            entity.getServer(),
+            entity.level().getServer(),
             entity.level().dimension(), spawnPacket
         );
         seenBy.forEach(handler -> {

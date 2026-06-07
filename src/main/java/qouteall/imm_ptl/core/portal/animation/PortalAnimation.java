@@ -65,17 +65,17 @@ public class PortalAnimation {
     
     public void readFromTag(CompoundTag tag) {
         if (tag.contains("animation")) {
-            defaultAnimation = DefaultPortalAnimation.fromNbt(tag.getCompound("animation"));
+            defaultAnimation = DefaultPortalAnimation.fromNbt(tag.getCompound("animation").get());
         }
         else if (tag.contains("defaultAnimation")) {
-            defaultAnimation = DefaultPortalAnimation.fromNbt(tag.getCompound("defaultAnimation"));
+            defaultAnimation = DefaultPortalAnimation.fromNbt(tag.getCompound("defaultAnimation").get());
         }
         else {
             defaultAnimation = DefaultPortalAnimation.createDefault();
         }
         
         if (tag.contains("thisSideAnimations")) {
-            ListTag listTag = tag.getList("thisSideAnimations", 10);
+            ListTag listTag = tag.getList("thisSideAnimations").get();
             thisSideAnimations = Helper.listTagToList(listTag, PortalAnimationDriver::fromTag);
         }
         else {
@@ -83,7 +83,7 @@ public class PortalAnimation {
         }
         
         if (tag.contains("otherSideAnimations")) {
-            ListTag listTag = tag.getList("otherSideAnimations", 10);
+            ListTag listTag = tag.getList("otherSideAnimations").get();
             otherSideAnimations = Helper.listTagToList(listTag, PortalAnimationDriver::fromTag);
         }
         else {
@@ -91,42 +91,42 @@ public class PortalAnimation {
         }
         
         if (tag.contains("pauseTime")) {
-            pauseTime = tag.getLong("pauseTime");
+            pauseTime = tag.getLong("pauseTime").get();
         }
         else {
             pauseTime = 0;
         }
         
         if (tag.contains("timeOffset")) {
-            timeOffset = tag.getLong("timeOffset");
+            timeOffset = tag.getLong("timeOffset").get();
         }
         else {
             timeOffset = 0;
         }
         
         if (tag.contains("thisSideReferenceState")) {
-            thisSideReferenceState = UnilateralPortalState.fromTag(tag.getCompound("thisSideReferenceState"));
+            thisSideReferenceState = UnilateralPortalState.fromTag(tag.getCompound("thisSideReferenceState").get());
         }
         else {
             thisSideReferenceState = null;
         }
         
         if (tag.contains("otherSideReferenceState")) {
-            otherSideReferenceState = UnilateralPortalState.fromTag(tag.getCompound("otherSideReferenceState"));
+            otherSideReferenceState = UnilateralPortalState.fromTag(tag.getCompound("otherSideReferenceState").get());
         }
         else {
             otherSideReferenceState = null;
         }
         
         if (tag.contains("pausedThisSideState")) {
-            pausedThisSideState = UnilateralPortalState.fromTag(tag.getCompound("pausedThisSideState"));
+            pausedThisSideState = UnilateralPortalState.fromTag(tag.getCompound("pausedThisSideState").get());
         }
         else {
             pausedThisSideState = null;
         }
         
         if (tag.contains("pausedOtherSideState")) {
-            pausedOtherSideState = UnilateralPortalState.fromTag(tag.getCompound("pausedOtherSideState"));
+            pausedOtherSideState = UnilateralPortalState.fromTag(tag.getCompound("pausedOtherSideState").get());
         }
         else {
             pausedOtherSideState = null;

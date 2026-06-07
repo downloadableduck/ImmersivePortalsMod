@@ -1,5 +1,6 @@
 package qouteall.imm_ptl.core.compat.iris_compatibility;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
@@ -71,8 +72,8 @@ public class IrisCompatibilityPortalRenderer extends PortalRenderer {
     public void prepareRendering() {
         deferredBuffer.prepare();
         
-        deferredBuffer.fb.setClearColor(1, 0, 0, 0);
-        deferredBuffer.fb.clear(Minecraft.ON_OSX);
+        //deferredBuffer.fb.setClearColor(1, 0, 0, 0);
+        //deferredBuffer.fb.clear(Minecraft.ON_OSX);
         
         IPPortingLibCompat.setIsStencilEnabled(
             client.getMainRenderTarget(), false
@@ -109,7 +110,7 @@ public class IrisCompatibilityPortalRenderer extends PortalRenderer {
                 portal,
                 client.getMainRenderTarget(),
                 modelView,
-                RenderSystem.getProjectionMatrix()
+                RenderSystem.getModelViewMatrix()
             );
         }
         else {
@@ -122,7 +123,7 @@ public class IrisCompatibilityPortalRenderer extends PortalRenderer {
         
         CHelper.disableDepthClamp();
         
-        RenderSystem.colorMask(true, true, true, true);
+        GlStateManager._colorMask(true, true, true, true);
         
         client.getMainRenderTarget().bindWrite(true);
     }
@@ -154,7 +155,7 @@ public class IrisCompatibilityPortalRenderer extends PortalRenderer {
             ViewAreaRenderer.renderPortalArea(
                 portal, Vec3.ZERO,
                 modelView,
-                RenderSystem.getProjectionMatrix(),
+                RenderSystem.getModelViewMatrix(),
                 true, false, false, true
             );
         });

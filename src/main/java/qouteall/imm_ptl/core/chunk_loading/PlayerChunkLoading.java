@@ -3,8 +3,6 @@ package qouteall.imm_ptl.core.chunk_loading;
 import com.mojang.logging.LogUtils;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import net.fabricmc.fabric.impl.attachment.AttachmentTargetImpl;
-import net.fabricmc.fabric.impl.attachment.sync.AttachmentChange;
 import net.minecraft.network.protocol.game.ClientboundChunkBatchFinishedPacket;
 import net.minecraft.network.protocol.game.ClientboundChunkBatchStartPacket;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
@@ -28,7 +26,6 @@ import qouteall.imm_ptl.core.network.PacketRedirection;
 import qouteall.q_misc_util.Helper;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -140,7 +137,7 @@ public class PlayerChunkLoading {
                 if (world == null) {
                     LOGGER.error(
                         "Missing dimension when flushing pending loading {}",
-                        record.dimension.location()
+                        record.dimension.identifier()
                     );
                     return true;
                 }
@@ -218,12 +215,12 @@ public class PlayerChunkLoading {
     private static void onSendPacket(ServerGamePacketListenerImpl listener, LevelChunk chunk) {
         ServerPlayer player = listener.player;
         
-        List<AttachmentChange> changes = new ArrayList<>();
-        ((AttachmentTargetImpl) chunk).fabric_computeInitialSyncChanges(player, changes::add);
+        //List<AttachmentChange> changes = new ArrayList<>();
+        //((AttachmentTargetImpl) chunk).fabric_computeInitialSyncChanges(player, changes::add);
         
-        if (!changes.isEmpty()) {
-            AttachmentChange.partitionAndSendPackets(changes, player);
-        }
+        //if (!changes.isEmpty()) {
+           // AttachmentChange.partitionAndSendPackets(changes, player);
+       // }
     }
     
     /**

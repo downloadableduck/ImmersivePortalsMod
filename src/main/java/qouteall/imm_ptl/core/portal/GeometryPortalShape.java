@@ -1,7 +1,9 @@
 package qouteall.imm_ptl.core.portal;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.world.level.storage.ValueInput;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import qouteall.q_misc_util.my_util.Mesh2D;
@@ -11,10 +13,10 @@ public class GeometryPortalShape {
     
     public static final int MAX_TRIANGLE_NUM = 10000;
     
-    public static @Nullable Mesh2D readOldMeshFromTag(ListTag tag) {
-        int size = tag.size();
+    public static @Nullable Mesh2D readOldMeshFromTag(CompoundTag tag) {
+        int size = 6;
         if (size % 6 != 0) {
-            LOGGER.error("Invalid Portal Shape Data {}", tag);
+           // LOGGER.error("Invalid Portal Shape Data {}", tag);
             return null;
         }
         
@@ -26,12 +28,12 @@ public class GeometryPortalShape {
         
         for (int i = 0; i < triangleNum; i++) {
             mesh.addTriangle(
-                tag.getDouble(i * 6 + 0),
-                tag.getDouble(i * 6 + 1),
-                tag.getDouble(i * 6 + 2),
-                tag.getDouble(i * 6 + 3),
-                tag.getDouble(i * 6 + 4),
-                tag.getDouble(i * 6 + 5)
+                i * 6 + 0,
+                i * 6 + 1,
+                i * 6 + 2,
+                i * 6 + 3,
+                i * 6 + 4,
+                i * 6 + 5
             );
         }
         
@@ -58,12 +60,12 @@ public class GeometryPortalShape {
         
         for (int i = 0; i < triangleNum; i++) {
             mesh.addTriangle(
-                tag.getDouble(i * 6 + 0) / halfWidth,
-                tag.getDouble(i * 6 + 1) / halfHeight,
-                tag.getDouble(i * 6 + 2) / halfWidth,
-                tag.getDouble(i * 6 + 3) / halfHeight,
-                tag.getDouble(i * 6 + 4) / halfWidth,
-                tag.getDouble(i * 6 + 5) / halfHeight
+                tag.getDouble(i * 6 + 0).get() / halfWidth,
+                tag.getDouble(i * 6 + 1).get() / halfHeight,
+                tag.getDouble(i * 6 + 2).get() / halfWidth,
+                tag.getDouble(i * 6 + 3).get() / halfHeight,
+                tag.getDouble(i * 6 + 4).get() / halfWidth,
+                tag.getDouble(i * 6 + 5).get() / halfHeight
             );
         }
         

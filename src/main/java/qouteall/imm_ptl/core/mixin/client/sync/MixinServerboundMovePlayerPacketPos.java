@@ -17,7 +17,7 @@ import qouteall.imm_ptl.core.network.ImmPtlNetworkConfig;
 @Environment(EnvType.CLIENT)
 @Mixin(ServerboundMovePlayerPacket.Pos.class)
 public class MixinServerboundMovePlayerPacketPos {
-    @Inject(method = "Lnet/minecraft/network/protocol/game/ServerboundMovePlayerPacket$Pos;write(Lnet/minecraft/network/FriendlyByteBuf;)V", at = @At("RETURN"))
+    @Inject(method = "write(Lnet/minecraft/network/FriendlyByteBuf;)V", at = @At("RETURN"))
     private void onWrite(FriendlyByteBuf buf, CallbackInfo ci) {
         if (!ImmPtlNetworkConfig.doesServerHaveImmPtl()) {
             return;

@@ -51,11 +51,11 @@ public record DeltaUnilateralPortalState(
     public static DeltaUnilateralPortalState fromTag(CompoundTag tag) {
         return new DeltaUnilateralPortalState(
             Helper.getVec3dOptional(tag, "offset"),
-            tag.contains("rotation") ? DQuaternion.fromTag(tag.getCompound("rotation")) : null,
+            tag.contains("rotation") ? DQuaternion.fromTag(tag.getCompound("rotation").get()) : null,
             tag.contains("sizeScalingX") ? new Vec3(
-                tag.getDouble("sizeScalingX"),
-                tag.getDouble("sizeScalingY"),
-                tag.contains("sizeScalingZ") ? tag.getDouble("sizeScalingZ") : 1
+                tag.getDouble("sizeScalingX").get(),
+                tag.getDouble("sizeScalingY").get(),
+                tag.contains("sizeScalingZ") ? tag.getDouble("sizeScalingZ").get() : 1
             ) : null
         );
     }

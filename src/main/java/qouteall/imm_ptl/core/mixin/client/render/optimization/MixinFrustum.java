@@ -55,7 +55,7 @@ public class MixinFrustum implements IEFrustum {
     }
     
     @Inject(
-        method = "Lnet/minecraft/client/renderer/culling/Frustum;prepare(DDD)V",
+        method = "prepare(DDD)V",
         at = @At("TAIL")
     )
     private void onSetOrigin(double double_1, double double_2, double double_3, CallbackInfo ci) {
@@ -74,7 +74,7 @@ public class MixinFrustum implements IEFrustum {
     }
     
     @Inject(
-        method = "cubeInFrustum",
+        method = "cubeInFrustum*",
         at = @At("HEAD"),
         cancellable = true
     )

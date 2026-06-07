@@ -16,14 +16,11 @@ import qouteall.imm_ptl.peripheral.wand.PortalWandItem;
 public class MixinDebugRenderer {
     // let's put portal wand marking render into debug renderer
     @Inject(
-        method = "render",
+        method = "refreshRendererList",
         at = @At("RETURN")
     )
     private void onRender(
-        PoseStack poseStack,
-        MultiBufferSource.BufferSource bufferSource,
-        double camX, double camY, double camZ,
-        CallbackInfo ci
+            CallbackInfo ci
     ) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) {
@@ -33,7 +30,7 @@ public class MixinDebugRenderer {
         ItemStack itemStack = player.getMainHandItem();
         
         if (itemStack.getItem() == PortalWandItem.instance) {
-            PortalWandItem.clientRender(player, itemStack, poseStack, bufferSource, camX, camY, camZ);
+            //PortalWandItem.clientRender(player, itemStack, new PoseStack(), Mu, camX, camY, camZ);
         }
     }
     

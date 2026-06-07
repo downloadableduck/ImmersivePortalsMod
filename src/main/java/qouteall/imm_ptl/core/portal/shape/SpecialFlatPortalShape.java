@@ -45,7 +45,7 @@ public final class SpecialFlatPortalShape implements PortalShape {
     }
     
     private static @Nullable SpecialFlatPortalShape deserialize(CompoundTag tag) {
-        Mesh2D m = Mesh2D.fromTag(tag.getCompound("shape"));
+        Mesh2D m = Mesh2D.fromTag(tag.getCompound("shape").get());
         if (m == null) {
             return null;
         }

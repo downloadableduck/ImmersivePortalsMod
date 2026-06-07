@@ -4,13 +4,13 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.components.MultiLineLabel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.util.FormattedCharSequence;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix3x2f;
 
 import java.util.TreeMap;
 
@@ -100,7 +100,7 @@ public class CustomTextOverlay {
         
         Minecraft minecraft = Minecraft.getInstance();
         
-        guiGraphics.pose().pushPose();
+        guiGraphics.pose().pushMatrix();
         
         int guiScaledWidth = minecraft.getWindow().getGuiScaledWidth();
         int guiScaledHeight = minecraft.getWindow().getGuiScaledHeight();
@@ -110,23 +110,44 @@ public class CustomTextOverlay {
         minecraft.getProfiler().push("imm_ptl_custom_overlay");
         if (renderAtBottomCenter) {
             // Note: the parchment names are incorrect
-            multiLineLabelCache.renderCentered(
-                guiGraphics,
+            multiLineLabelCache.visitLines(
+                TextAlignment.CENTER,
                 guiScaledWidth / 2, // x
-                (int) (guiScaledHeight * 0.75) // y
+                (int) (guiScaledHeight * 0.75), // y
+                    0, new ActiveTextCollector() {
+                        @Override
+                        public Parameters defaultParameters() {
+                            return new Parameters(new Matrix3x2f());
+                        }
+
+                        @Override
+                        public void defaultParameters(Parameters parameters) {
+
+                        }
+
+                        @Override
+                        public void accept(TextAlignment textAlignment, int i, int j, Parameters parameters, FormattedCharSequence formattedCharSequence) {
+
+                        }
+
+                        @Override
+                        public void acceptScrolling(Component component, int i, int j, int k, int l, int m, Parameters parameters) {
+
+                        }
+                    }
             );
         }
         else {
-            multiLineLabelCache.renderLeftAligned(
-                guiGraphics,
+            multiLineLabelCache.visitLines(
+                TextAlignment.CENTER,
                 10, // x
                 10, // y
                 9, // line height
-                0xffffffff // color
+                new ActiveTextCollector.ClickableStyleFinder(Minecraft.getInstance().font, 10, 10) // color
             );
         }
         
-        guiGraphics.pose().popPose();
+        guiGraphics.pose().popMatrix();
         
         minecraft.getProfiler().pop();
     }

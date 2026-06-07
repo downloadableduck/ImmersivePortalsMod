@@ -10,11 +10,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.projectile.Arrow;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.projectile.arrow.Arrow;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
@@ -147,7 +144,7 @@ public class EndPortalEntity extends Portal {
         
         Vec3 portalCenter = thisSideBox.getCenter();
         
-        EndPortalEntity portal = EndPortalEntity.ENTITY_TYPE.create(world);
+        EndPortalEntity portal = EndPortalEntity.ENTITY_TYPE.create(world, EntitySpawnReason.BREEDING);
         assert portal != null;
         
         portal.setOriginPos(portalCenter);
@@ -263,7 +260,7 @@ public class EndPortalEntity extends Portal {
             );
         }
         
-        MinecraftServer server = getServer();
+        MinecraftServer server = this.level().getServer();
         assert server != null;
         ServerLevel endWorld = server.getLevel(Level.END);
         if (endWorld != null) {
@@ -342,7 +339,7 @@ public class EndPortalEntity extends Portal {
         if (!level().isClientSide()) {
             if (entity instanceof ServerPlayer) {
                 if (IPGlobal.endPortalMode == IPGlobal.EndPortalMode.toObsidianPlatform) {
-                    MinecraftServer server = getServer();
+                    MinecraftServer server = this.level().getServer();
                     assert server != null;
                     ServerLevel endWorld = server.getLevel(Level.END);
                     if (endWorld != null) {

@@ -56,13 +56,13 @@ public abstract class MixinChunkMap_E implements IEChunkMap {
     
     @IPVanillaCopy
     @Inject(
-        method = "Lnet/minecraft/server/level/ChunkMap;removeEntity(Lnet/minecraft/world/entity/Entity;)V",
+        method = "removeEntity(Lnet/minecraft/world/entity/Entity;)V",
         at = @At("HEAD"),
         cancellable = true
     )
     private void onUnloadEntity(Entity entity, CallbackInfo ci) {
         // when the player leave this dimension, do not stop tracking entities
-        if (ServerTeleportationManager.of(entity.getServer()).isTeleporting(entity)) {
+        if (ServerTeleportationManager.of(entity.level().getServer()).isTeleporting(entity)) {
             if (entity instanceof ServerPlayer player) {
                 Object tracker = entityMap.remove(entity.getId());
                 ((IETrackedEntity) tracker).ip_stopTrackingToAllPlayers();
@@ -79,7 +79,7 @@ public abstract class MixinChunkMap_E implements IEChunkMap {
     /**
      * Managed by {@link EntitySync}
      */
-    @Inject(method = "Lnet/minecraft/server/level/ChunkMap;tick()V", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "tick()V", at = @At("HEAD"), cancellable = true)
     private void onTickEntityMovement(CallbackInfo ci) {
         ci.cancel();
     }

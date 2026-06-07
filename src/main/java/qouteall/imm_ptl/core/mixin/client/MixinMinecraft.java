@@ -8,6 +8,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.RenderBuffers;
+import net.minecraft.util.profiling.Profiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ import qouteall.imm_ptl.core.ClientWorldLoader;
 import qouteall.imm_ptl.core.IPCGlobal;
 import qouteall.imm_ptl.core.IPGlobal;
 import qouteall.imm_ptl.core.ducks.IEMinecraftClient;
+import qouteall.imm_ptl.core.ducks.MinecraftImpl;
 import qouteall.imm_ptl.core.miscellaneous.ClientPerformanceMonitor;
 import qouteall.imm_ptl.core.miscellaneous.IPortalInitialScreen;
 import qouteall.imm_ptl.core.platform_specific.IPConfig;
@@ -36,7 +38,7 @@ import java.util.List;
 import java.util.function.Function;
 
 @Mixin(Minecraft.class)
-public abstract class MixinMinecraft implements IEMinecraftClient {
+public abstract class MixinMinecraft implements IEMinecraftClient, MinecraftImpl {
     @Final
     @Shadow
     @Mutable
@@ -52,9 +54,10 @@ public abstract class MixinMinecraft implements IEMinecraftClient {
     
     @Shadow
     private static int fps;
-    
-    @Shadow
-    public abstract ProfilerFiller getProfiler();
+
+    public ProfilerFiller getProfiler() {
+        return Profiler.get();
+    }
     
     @Shadow
     @Nullable
@@ -72,7 +75,7 @@ public abstract class MixinMinecraft implements IEMinecraftClient {
     @Shadow private Thread gameThread;
     
     @WrapOperation(
-        method = "Lnet/minecraft/client/Minecraft;run()V",
+        method = "run()V",
         at = @At(
             value = "INVOKE",
             target = "Ljava/lang/Thread;currentThread()Ljava/lang/Thread;"
@@ -117,7 +120,7 @@ public abstract class MixinMinecraft implements IEMinecraftClient {
     
     // this happens after ticking client world and entities
     @Inject(
-        method = "Lnet/minecraft/client/Minecraft;tick()V",
+        method = "tick()V",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/client/multiplayer/ClientLevel;tick(Ljava/util/function/BooleanSupplier;)V",
@@ -142,7 +145,7 @@ public abstract class MixinMinecraft implements IEMinecraftClient {
     }
     
     @Inject(
-        method = "Lnet/minecraft/client/Minecraft;runTick(Z)V",
+        method = "runTick(Z)V",
         at = @At(
             value = "FIELD",
             target = "Lnet/minecraft/client/Minecraft;fps:I",
@@ -154,7 +157,7 @@ public abstract class MixinMinecraft implements IEMinecraftClient {
     }
     
     @Inject(
-        method = "Lnet/minecraft/client/Minecraft;updateLevelInEngines(Lnet/minecraft/client/multiplayer/ClientLevel;)V",
+        method = "updateLevelInEngines(Lnet/minecraft/client/multiplayer/ClientLevel;)V",
         at = @At("HEAD")
     )
     private void onSetWorld(ClientLevel clientLevel, CallbackInfo ci) {
@@ -175,7 +178,7 @@ public abstract class MixinMinecraft implements IEMinecraftClient {
     }
     
     //avoid messing up rendering states in fabulous
-    @Inject(method = "Lnet/minecraft/client/Minecraft;useShaderTransparency()Z", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "useShaderTransparency()Z", at = @At("HEAD"), cancellable = true)
     private static void onIsFabulousGraphicsOrBetter(CallbackInfoReturnable<Boolean> cir) {
         if (WorldRenderInfo.isRendering()) {
             cir.setReturnValue(false);
@@ -186,10 +189,10 @@ public abstract class MixinMinecraft implements IEMinecraftClient {
         method = "addInitialScreens",
         at = @At("RETURN")
     )
-    private void onAddInitialScreens(List<Function<Runnable, Screen>> output, CallbackInfo ci) {
+    private void onAddInitialScreens(List<Function<Runnable, Screen>> list, CallbackInfoReturnable<Boolean> cir) {
         IPConfig config = IPConfig.getConfig();
         if (!config.initialScreenShown) {
-            output.add(IPortalInitialScreen::new);
+            list.add(IPortalInitialScreen::new);
         }
     }
     

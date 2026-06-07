@@ -11,7 +11,7 @@ import qouteall.imm_ptl.peripheral.alternate_dimension.AlternateDimensions;
 @Mixin(ClientLevel.ClientLevelData.class)
 public class MixinClientLevelData_CVB {
     @Inject(
-        method = "Lnet/minecraft/client/multiplayer/ClientLevel$ClientLevelData;getHorizonHeight(Lnet/minecraft/world/level/LevelHeightAccessor;)D",
+        method = "getHorizonHeight(Lnet/minecraft/world/level/LevelHeightAccessor;)D",
         at = @At("HEAD"),
         cancellable = true
     )

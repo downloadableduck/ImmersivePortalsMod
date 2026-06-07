@@ -1,6 +1,7 @@
 package qouteall.imm_ptl.peripheral.portal_generation;
 
 import com.google.common.collect.Lists;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
@@ -54,13 +55,13 @@ public class IntrinsicPortalGeneration {
     );
     
     public static void init() {
-        intrinsicToNether.identifier = McHelper.newResourceLocation("imm_ptl:intrinsic_nether_portal");
-        intrinsicFromNether.identifier = McHelper.newResourceLocation("imm_ptl:intrinsic_nether_portal");
+        intrinsicToNether.identifier = McHelper.newIdentifier("imm_ptl:intrinsic_nether_portal");
+        intrinsicFromNether.identifier = McHelper.newIdentifier("imm_ptl:intrinsic_nether_portal");
         
-        diligentFromNether.identifier = McHelper.newResourceLocation("imm_ptl:intrinsic_diligent_nether_portal");
-        diligentToNether.identifier = McHelper.newResourceLocation("imm_ptl:intrinsic_diligent_nether_portal");
+        diligentFromNether.identifier = McHelper.newIdentifier("imm_ptl:intrinsic_diligent_nether_portal");
+        diligentToNether.identifier = McHelper.newIdentifier("imm_ptl:intrinsic_diligent_nether_portal");
         
-        portalHelper.identifier = McHelper.newResourceLocation("imm_ptl:intrinsic_portal_helper");
+        portalHelper.identifier = McHelper.newIdentifier("imm_ptl:intrinsic_portal_helper");
     }
     
     /**
@@ -131,7 +132,7 @@ public class IntrinsicPortalGeneration {
         }
         
         PortalShape areaHelper = newPortal.get();
-        areaHelper.createPortalBlocks();
+        areaHelper.createPortalBlocks(Minecraft.getInstance().level);
         return true;
     }
 }

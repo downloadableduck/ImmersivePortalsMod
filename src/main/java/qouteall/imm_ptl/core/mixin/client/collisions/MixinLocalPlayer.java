@@ -12,7 +12,7 @@ import qouteall.imm_ptl.core.ducks.IEEntity;
 public class MixinLocalPlayer {
     // avoid beingpushed out of blocks by the blocks on the other facing of the portal
     @Inject(
-        method = "Lnet/minecraft/client/player/LocalPlayer;suffocatesAt(Lnet/minecraft/core/BlockPos;)Z",
+        method = "suffocatesAt(Lnet/minecraft/core/BlockPos;)Z",
         at = @At("HEAD"),
         cancellable = true
     )

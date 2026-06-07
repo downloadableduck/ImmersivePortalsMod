@@ -1,4 +1,4 @@
-accessWidener v2 named
+classTweaker v1 named
 
 transitive-accessible field net/minecraft/server/MinecraftServer storageSource Lnet/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess;
 
@@ -38,3 +38,16 @@ transitive-accessible field net/minecraft/client/multiplayer/ClientChunkCache st
 transitive-accessible field net/minecraft/client/multiplayer/ClientChunkCache level Lnet/minecraft/client/multiplayer/ClientLevel;
 
 transitive-accessible class net/minecraft/util/datafix/fixes/ItemStackComponentizationFix$ItemStackData
+extendable method net/minecraft/world/entity/Entity makeBoundingBox ()Lnet/minecraft/world/phys/AABB;
+accessible field net/minecraft/world/entity/EntityType$Builder dimensions Lnet/minecraft/world/entity/EntityDimensions;
+accessible field net/minecraft/server/level/ServerPlayer server Lnet/minecraft/server/MinecraftServer;
+transitive-inject-interface com/mojang/blaze3d/pipeline/RenderTarget qouteall/imm_ptl/core/ducks/RenderTargetImpl
+transitive-inject-interface net/minecraft/client/renderer/GameRenderer qouteall/imm_ptl/core/ducks/GameRendererImpl
+transitive-inject-interface net/minecraft/resources/ResourceKey qouteall/imm_ptl/core/ducks/ResourceKeyImpl
+transitive-inject-interface net/minecraft/client/Minecraft qouteall/imm_ptl/core/ducks/MinecraftImpl
+accessible method com/mojang/blaze3d/opengl/GlProgram <init> (ILjava/lang/String;)V
+transitive-inject-interface net/minecraft/server/MinecraftServer qouteall/imm_ptl/core/ducks/MinecraftImpl
+accessible field net/minecraft/client/renderer/GameRenderer fogRenderer Lnet/minecraft/client/renderer/fog/FogRenderer;
+transitive-inject-interface net/minecraft/network/protocol/game/ClientboundPlayerPositionPacket qouteall/imm_ptl/core/ducks/IEPlayerPositionLookS2CPacket
+transitive-inject-interface net/minecraft/world/level/Level qouteall/imm_ptl/core/ducks/MinecraftImpl
+transitive-inject-interface net/fabricmc/fabric/api/serialization/v1/view/FabricReadView qouteall/imm_ptl/core/ducks/ValueInputOutputImpl

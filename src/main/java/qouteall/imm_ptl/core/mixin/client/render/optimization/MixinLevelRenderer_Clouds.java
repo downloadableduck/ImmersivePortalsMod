@@ -1,8 +1,10 @@
 package qouteall.imm_ptl.core.mixin.client.render.optimization;
 
+import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexBuffer;
+import net.minecraft.client.CloudStatus;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.CloudRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
@@ -23,50 +25,37 @@ import qouteall.imm_ptl.core.render.context_management.RenderStates;
 // avoiding rebuild the cloud mesh every time
 @Mixin(LevelRenderer.class)
 public abstract class MixinLevelRenderer_Clouds {
-    
+
     @Shadow
-    private int prevCloudX;
-    
-    @Shadow
-    private int prevCloudY;
-    
-    @Shadow
-    private int prevCloudZ;
-    
-    @Shadow
-    @Nullable
-    private VertexBuffer cloudBuffer;
+    private CloudRenderer cloudRenderer;
     
     @Shadow
     private ClientLevel level;
     
     @Shadow
-    private boolean generateClouds;
-    
-    @Shadow
     private int ticks;
     
     @Inject(
-        method = "renderClouds",
+        method = "addCloudsPass",
         at = @At("HEAD")
     )
     private void onBeginRenderClouds(
-        PoseStack poseStack, Matrix4f projectionMatrix, Matrix4f frustrumMatrix, float partialTick, double camX, double camY, double camZ, CallbackInfo ci
+            FrameGraphBuilder frameGraphBuilder, CloudStatus cloudStatus, Vec3 vec3, long l, float f, int i, float g, CallbackInfo ci
     ) {
         if (RenderStates.getRenderedPortalNum() == 0) {
             return;
         }
         
         if (IPGlobal.cloudOptimization) {
-            portal_onBeginCloudRendering(partialTick, camX, camY, camZ);
+           // portal_onBeginCloudRendering(l, camX, camY, camZ);
         }
     }
     
     @Inject(
-        method = "renderClouds",
+        method = "addCloudsPass",
         at = @At("RETURN")
     )
-    private void onEndRenderClouds(PoseStack poseStack, Matrix4f projectionMatrix, Matrix4f frustrumMatrix, float partialTick, double camX, double camY, double camZ, CallbackInfo ci) {
+    private void onEndRenderClouds(FrameGraphBuilder frameGraphBuilder, CloudStatus cloudStatus, Vec3 vec3, long l, float f, int i, float g, CallbackInfo ci) {
         if (RenderStates.getRenderedPortalNum() == 0) {
             return;
         }
@@ -77,21 +66,21 @@ public abstract class MixinLevelRenderer_Clouds {
     }
     
     private void portal_yieldCloudContext(CloudContext context) {
-        Vec3 cloudsColor = this.level.getCloudColor(RenderStates.getPartialTick());
+        /*Vec3 cloudsColor = this.level.getCloudColor(RenderStates.getPartialTick());
         
         context.lastCloudsBlockX = prevCloudX;
         context.lastCloudsBlockY = prevCloudY;
         context.lastCloudsBlockZ = prevCloudZ;
-        context.cloudsBuffer = cloudBuffer;
+        context.cloudsBuffer = this.cloudr;
         context.dimension = level.dimension();
         context.cloudColor = cloudsColor;
         
         cloudBuffer = null;
-        generateClouds = true;
+        generateClouds = true;*/
     }
     
     private void portal_loadCloudContext(CloudContext context) {
-        Validate.isTrue(context.dimension == level.dimension());
+        /*Validate.isTrue(context.dimension == level.dimension());
         
         prevCloudX = context.lastCloudsBlockX;
         prevCloudY = context.lastCloudsBlockY;
@@ -99,7 +88,7 @@ public abstract class MixinLevelRenderer_Clouds {
         cloudBuffer = context.cloudsBuffer;
         
         generateClouds = false;
-    }
+    */}
     
     /**
      * {@link LevelRenderer#renderClouds}
@@ -108,7 +97,7 @@ public abstract class MixinLevelRenderer_Clouds {
     private void portal_onBeginCloudRendering(
         float partialTick, double cameraX, double cameraY, double cameraZ
     ) {
-        float f = this.level.effects().getCloudHeight();
+        float f = this.level.getHeight();
         float g = 12.0F;
         float h = 4.0F;
         double d = 2.0E-4D;
@@ -121,7 +110,7 @@ public abstract class MixinLevelRenderer_Clouds {
         float l = (float) (i - (double) Mth.floor(i));
         float m = (float) (j / 4.0D - (double) Mth.floor(j / 4.0D)) * 4.0F;
         float n = (float) (k - (double) Mth.floor(k));
-        Vec3 cloudsColor = this.level.getCloudColor(partialTick);
+        Vec3 cloudsColor = new Vec3(i, k, l);
         int kx = (int) Math.floor(i);
         int ky = (int) Math.floor(j / 4.0D);
         int kz = (int) Math.floor(k);
@@ -136,11 +125,11 @@ public abstract class MixinLevelRenderer_Clouds {
     }
     
     private void portal_onEndCloudRendering() {
-        if (!generateClouds) {
+        //if (!generateClouds) {
             final CloudContext newContext = new CloudContext();
             portal_yieldCloudContext(newContext);
             
             CloudContext.appendContext(newContext);
-        }
+        //}
     }
 }

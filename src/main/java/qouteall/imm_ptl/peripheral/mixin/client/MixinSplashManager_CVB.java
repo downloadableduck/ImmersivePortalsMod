@@ -22,12 +22,12 @@ public class MixinSplashManager_CVB {
     private void onApply(
         List<String> list, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci
     ) {
-        if (splashes.remove("Euclidian!")) {
+        /*if (splashes.remove("Euclidian!")) {
             splashes.add("Non-Euclidian!");
         }
         if (splashes.remove("Slow acting portals!")) {
             splashes.add("Fast acting portals!");
             splashes.add("Immersive Portals!");
-        }
+        }*/
     }
 }

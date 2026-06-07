@@ -24,7 +24,7 @@ import qouteall.imm_ptl.core.portal.PortalPlaceholderBlock;
 
 @Mixin(EnderEyeItem.class)
 public class MixinEnderEyeItem_CVB {
-    @Inject(method = "Lnet/minecraft/world/item/EnderEyeItem;useOn(Lnet/minecraft/world/item/context/UseOnContext;)Lnet/minecraft/world/InteractionResult;", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "useOn(Lnet/minecraft/world/item/context/UseOnContext;)Lnet/minecraft/world/InteractionResult;", at = @At("HEAD"), cancellable = true)
     private void onUseOnBlock(
         UseOnContext itemUsageContext_1,
         CallbackInfoReturnable<InteractionResult> cir
@@ -42,7 +42,7 @@ public class MixinEnderEyeItem_CVB {
         BlockState blockState = world.getBlockState(blockPos);
         if (blockState.getBlock() == Blocks.END_PORTAL_FRAME &&
             !blockState.getValue(EndPortalFrameBlock.HAS_EYE)) {
-            if (world.isClientSide) {
+            if (world.isClientSide()) {
                 return InteractionResult.SUCCESS;
             }
             else {

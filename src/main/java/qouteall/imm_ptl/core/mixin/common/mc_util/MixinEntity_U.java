@@ -10,7 +10,7 @@ import qouteall.imm_ptl.core.mc_utils.IPEntityEventListenableEntity;
 @Mixin(Entity.class)
 public class MixinEntity_U {
     @Inject(
-        method = "Lnet/minecraft/world/entity/Entity;setPosRaw(DDD)V",
+        method = "setPosRaw(DDD)V",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/world/level/entity/EntityInLevelCallback;onMove()V"
@@ -23,7 +23,7 @@ public class MixinEntity_U {
     }
     
     @Inject(
-        method = "Lnet/minecraft/world/entity/Entity;setRemoved(Lnet/minecraft/world/entity/Entity$RemovalReason;)V",
+        method = "setRemoved(Lnet/minecraft/world/entity/Entity$RemovalReason;)V",
         at = @At("RETURN")
     )
     private void onSetRemoved(Entity.RemovalReason reason, CallbackInfo ci) {

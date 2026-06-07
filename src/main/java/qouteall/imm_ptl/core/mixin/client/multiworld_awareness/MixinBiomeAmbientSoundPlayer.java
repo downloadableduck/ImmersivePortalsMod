@@ -13,18 +13,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(BiomeAmbientSoundsHandler.class)
 public class MixinBiomeAmbientSoundPlayer {
-    @Mutable
+    /*@Mutable
     @Shadow
     @Final
-    private BiomeManager biomeManager;
+    private BiomeManager biomeManager;*/
     
     @Shadow
     @Final
     private LocalPlayer player;
     
     // change the biomeAccess field when player dimension changes
-    @Inject(method = "Lnet/minecraft/client/resources/sounds/BiomeAmbientSoundsHandler;tick()V", at = @At("HEAD"))
+    @Inject(method = "tick()V", at = @At("HEAD"))
     private void onTick(CallbackInfo ci) {
-        biomeManager = player.level().getBiomeManager();
+        BiomeManager biomeManager = player.level().getBiomeManager();
     }
 }

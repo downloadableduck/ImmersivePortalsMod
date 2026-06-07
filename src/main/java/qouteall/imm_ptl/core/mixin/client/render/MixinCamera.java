@@ -4,6 +4,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.FogType;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,7 +25,7 @@ public abstract class MixinCamera implements IECamera {
     @Shadow
     private Vec3 position;
     @Shadow
-    private BlockGetter level;
+    private Level level;
     @Shadow
     private Entity entity;
     @Shadow
@@ -36,22 +37,21 @@ public abstract class MixinCamera implements IECamera {
     protected abstract void setPosition(Vec3 vec3d_1);
     
     @Shadow
-    public abstract Entity getEntity();
+    public abstract Entity entity();
     
     @Inject(
-        method = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;ZZF)V",
+        method = "setup",
         at = @At("RETURN")
     )
     private void onUpdateFinished(
-        BlockGetter area, Entity focusedEntity, boolean thirdPerson,
-        boolean inverseView, float partialTick, CallbackInfo ci
+            Level level, Entity entity, boolean bl, boolean bl2, float f, CallbackInfo ci
     ) {
         Camera this_ = (Camera) (Object) this;
         WorldRenderInfo.adjustCameraPos(this_);
     }
     
     @Inject(
-        method = "Lnet/minecraft/client/Camera;getFluidInCamera()Lnet/minecraft/world/level/material/FogType;",
+        method = "getFluidInCamera()Lnet/minecraft/world/level/material/FogType;",
         at = @At("HEAD"),
         cancellable = true
     )
@@ -77,7 +77,7 @@ public abstract class MixinCamera implements IECamera {
 //    }
     
     // to let the player be rendered when rendering portal
-    @Inject(method = "Lnet/minecraft/client/Camera;isDetached()Z", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "isDetached()Z", at = @At("HEAD"), cancellable = true)
     private void onIsThirdPerson(CallbackInfoReturnable<Boolean> cir) {
         if (CrossPortalEntityRenderer.shouldRenderPlayerDefault()) {
             cir.setReturnValue(true);

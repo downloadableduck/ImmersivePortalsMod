@@ -16,7 +16,7 @@ public abstract class MixinMinecraftServer implements IEMinecraftServer {
     IPPerServerInfo ipPerServerInfo = new IPPerServerInfo();
     
     @Inject(
-        method = "Lnet/minecraft/server/MinecraftServer;runServer()V",
+        method = "runServer()V",
         at = @At("RETURN")
     )
     private void onServerClose(CallbackInfo ci) {

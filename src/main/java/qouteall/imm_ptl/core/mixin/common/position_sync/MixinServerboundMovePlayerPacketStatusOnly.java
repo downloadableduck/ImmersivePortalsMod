@@ -13,7 +13,7 @@ import qouteall.imm_ptl.core.ducks.IEPlayerMoveC2SPacket;
 
 @Mixin(ServerboundMovePlayerPacket.StatusOnly.class)
 public class MixinServerboundMovePlayerPacketStatusOnly {
-    @Inject(method = "Lnet/minecraft/network/protocol/game/ServerboundMovePlayerPacket$StatusOnly;read(Lnet/minecraft/network/FriendlyByteBuf;)Lnet/minecraft/network/protocol/game/ServerboundMovePlayerPacket$StatusOnly;", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "read(Lnet/minecraft/network/FriendlyByteBuf;)Lnet/minecraft/network/protocol/game/ServerboundMovePlayerPacket$StatusOnly;", at = @At("RETURN"), cancellable = true)
     private static void onRead(
         FriendlyByteBuf buf, CallbackInfoReturnable<ServerboundMovePlayerPacket.StatusOnly> cir
     ) {

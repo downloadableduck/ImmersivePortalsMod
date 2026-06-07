@@ -46,20 +46,8 @@
   "depends": {
     "fabricloader": ">=0.7.4",
     "fabric-api": ">=0.109.0",
-    "minecraft": ["1.21", "1.21.1"],
+    "minecraft": ["1.21.11"],
     "dimlib": "*"
-  },
-  "breaks": {
-    "optifabric": "*",
-    "pehkui": "<3.4.1",
-    "viafabric-mc119": "*",
-    "resolutioncontrol": "*",
-    "canvas": "*",
-    "cardboard": "*",
-    "iris": ["<1.8.0", ">1.8.0"],
-    "sodium": ["<0.6.0", ">0.6.0"],
-    "gravity_api": "*",
-    "vmp": "*"
   },
   "custom": {
     "modmenu": {
@@ -79,5 +67,5 @@
       "compat.immersive_portals.ip_IPNetworkingMixin": "Implemented"
     }
   },
-  "accessWidener": "imm_ptl.accesswidener"
+  "accessWidener": "imm_ptl.classtweaker"
 }

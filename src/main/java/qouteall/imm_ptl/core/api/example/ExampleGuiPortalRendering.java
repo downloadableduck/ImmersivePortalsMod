@@ -7,6 +7,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -109,7 +110,7 @@ public class ExampleGuiPortalRendering {
             if (frameBuffer == null) {
                 // the framebuffer size doesn't matter here
                 // because it will be automatically resized when rendering
-                frameBuffer = new TextureTarget(2, 2, true, true);
+                frameBuffer = new TextureTarget("2", 2, 2, true);
             }
             
             Minecraft.getInstance().setScreen(new GuiPortalScreen(dimension, position));
@@ -205,12 +206,12 @@ public class ExampleGuiPortalRendering {
         
         // close when E is pressed
         @Override
-        public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-            if (super.keyPressed(keyCode, scanCode, modifiers)) {
+        public boolean keyPressed(KeyEvent keyEvent) {
+            if (super.keyPressed(keyEvent)) {
                 return true;
             }
             
-            if (minecraft.options.keyInventory.matches(keyCode, scanCode)) {
+            if (minecraft.options.keyInventory.matches(keyEvent)) {
                 this.onClose();
                 return true;
             }

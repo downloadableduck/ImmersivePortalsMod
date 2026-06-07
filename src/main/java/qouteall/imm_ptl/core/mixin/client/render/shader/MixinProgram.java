@@ -1,7 +1,6 @@
 package qouteall.imm_ptl.core.mixin.client.render.shader;
 
 import com.mojang.blaze3d.preprocessor.GlslPreprocessor;
-import com.mojang.blaze3d.shaders.Program;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.Validate;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,14 +15,14 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Objects;
 
-@Mixin(value = Program.class)
+@Mixin(value = Class.class)
 public class MixinProgram {
     // The redirect uses method arguments.
     // Iris also injects that method and uses local capture, so cannot overwrite.
-    private static final ThreadLocal<Program.Type> ip_programType = new ThreadLocal<>();
+   // private static final ThreadLocal<CompiledShader.Type> ip_programType = new ThreadLocal<>();
     private static final ThreadLocal<String> ip_programName = new ThreadLocal<>();
     
-    @Inject(
+    /*@Inject(
         method = "compileShaderInternal",
         at = @At("HEAD")
     )
@@ -63,7 +62,7 @@ public class MixinProgram {
         InputStream inputStream, Charset charset
     ) throws IOException {
         String shaderCode = IOUtils.toString(inputStream, charset);
-        Program.Type type = ip_programType.get();
+        CompiledShader.Type type = ip_programType.get();
         String name = ip_programName.get();
         Validate.notNull(type);
         Validate.notNull(name);
@@ -72,5 +71,5 @@ public class MixinProgram {
             ShaderCodeTransformation.transform(type, name, shaderCode);
         
         return transformedShaderCode;
-    }
+    }*/
 }

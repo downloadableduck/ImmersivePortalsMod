@@ -67,9 +67,9 @@ public class CustomPortalGenManager {
         CustomPortalGenManager manager = new CustomPortalGenManager();
         
         Registry<CustomPortalGeneration> registry = server.registryAccess()
-            .registryOrThrow(CustomPortalGeneration.REGISTRY_KEY);
+                .lookupOrThrow(CustomPortalGeneration.REGISTRY_KEY);
         Registry<CustomPortalGeneration> legacyRegistry = server.registryAccess()
-            .registryOrThrow(CustomPortalGeneration.LEGACY_REGISTRY_KEY);
+            .lookupOrThrow(CustomPortalGeneration.LEGACY_REGISTRY_KEY);
         
         for (var entry : registry.entrySet()) {
             manager.addEntry(server, entry.getKey(), entry.getValue());
@@ -77,20 +77,20 @@ public class CustomPortalGenManager {
         
         for (var entry : legacyRegistry.entrySet()) {
             manager.addEntry(server, entry.getKey(), entry.getValue());
-//            ResourceLocation location = entry.getKey().location();
+//            Identifier identifier = entry.getKey().identifier();
 //            String text = """
 //                [Immersive Portals]
-//                Custom portal generation config %s comes from legacy location
+//                Custom portal generation config %s comes from legacy identifier
 //                /data/%s/custom_portal_generation/%s.json
 //
-//                It's recommended to migrate it to the new location
+//                It's recommended to migrate it to the new identifier
 //                /data/%s/immersive_portals/custom_portal_generation/%s.json
 //
 //                Future versions of the mod may no longer load generation configs from legacy locations.
 //                """
 //                .formatted(
-//                    location, location.getNamespace(), location.getPath(),
-//                    location.getNamespace(), location.getPath()
+//                    identifier, identifier.getNamespace(), identifier.getPath(),
+//                    identifier.getNamespace(), identifier.getPath()
 //                );
 //            LOGGER.warn("{}", text);
         }
@@ -104,7 +104,7 @@ public class CustomPortalGenManager {
         ResourceKey<CustomPortalGeneration> key,
         CustomPortalGeneration gen
     ) {
-        gen.identifier = key.location();
+        gen.identifier = key.identifier();
         
         CustomPortalGeneration.InitializationResult r1 = gen.initAndCheck(server);
         if (!(r1 instanceof CustomPortalGeneration.InitializationOk)) {
@@ -112,7 +112,7 @@ public class CustomPortalGenManager {
             return;
         }
         
-        LOGGER.info("Loaded Custom Portal Generation {}", key.location());
+        LOGGER.info("Loaded Custom Portal Generation {}", key.identifier());
         
         load(gen);
         
@@ -120,7 +120,7 @@ public class CustomPortalGenManager {
             CustomPortalGeneration reverse = gen.getReverse();
             
             if (reverse != null) {
-                reverse.identifier = key.location();
+                reverse.identifier = key.identifier();
                 CustomPortalGeneration.InitializationResult r2 = reverse.initAndCheck(server);
                 if (!(r2 instanceof CustomPortalGeneration.InitializationOk)) {
                     LOGGER.info(
@@ -204,7 +204,7 @@ public class CustomPortalGenManager {
             return;
         }
         
-        ServerTaskList.of(entity.getServer()).addTask(() -> {
+        ServerTaskList.of(entity.level().getServer()).addTask(() -> {
             for (CustomPortalGeneration gen : gens) {
                 boolean result = gen.perform(
                     ((ServerLevel) entity.level()),

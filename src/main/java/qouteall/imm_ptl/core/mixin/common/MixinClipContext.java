@@ -59,7 +59,7 @@ public abstract class MixinClipContext implements IERayTraceContext {
     // placeholder blocks entity view
     @Inject(
         at = @At("HEAD"),
-        method = "Lnet/minecraft/world/level/ClipContext;getBlockShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
+        method = "getBlockShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/shapes/VoxelShape;",
         cancellable = true
     )
     private void onGetBlockShape(

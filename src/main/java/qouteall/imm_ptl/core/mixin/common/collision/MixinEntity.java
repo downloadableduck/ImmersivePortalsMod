@@ -1,10 +1,12 @@
 package qouteall.imm_ptl.core.mixin.common.collision;
 
+import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -81,7 +83,7 @@ public abstract class MixinEntity implements IEEntity, ImmPtlEntityExtension {
     private static final CountDownInt IMM_PTL_LOG_COUNTER = new CountDownInt(20);
     
     @Redirect(
-        method = "Lnet/minecraft/world/entity/Entity;move(Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V",
+        method = "move(Lnet/minecraft/world/entity/MoverType;Lnet/minecraft/world/phys/Vec3;)V",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/world/entity/Entity;collide(Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/Vec3;"
@@ -140,7 +142,7 @@ public abstract class MixinEntity implements IEEntity, ImmPtlEntityExtension {
     //don't burn when jumping into end portal
     // TODO make it work for all portals
     @Inject(
-        method = "Lnet/minecraft/world/entity/Entity;fireImmune()Z",
+        method = "fireImmune()Z",
         at = @At("HEAD"),
         cancellable = true
     )
@@ -152,34 +154,34 @@ public abstract class MixinEntity implements IEEntity, ImmPtlEntityExtension {
     }
     
     @Redirect(
-        method = "Lnet/minecraft/world/entity/Entity;checkInsideBlocks()V",
+        method = "checkInsideBlocks(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/InsideBlockEffectApplier$StepBasedCollector;Lit/unimi/dsi/fastutil/longs/LongSet;I)I",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/Entity;getBoundingBox()Lnet/minecraft/world/phys/AABB;"
+            target = "Lnet/minecraft/world/entity/Entity;makeBoundingBox(Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/AABB;"
         )
     )
-    private AABB redirectBoundingBoxInCheckingBlockCollision(Entity entity) {
-        return ip_getActiveCollisionBox(entity.getBoundingBox());
+    private AABB redirectBoundingBoxInCheckingBlockCollision(Entity instance, Vec3 vec3) {
+        return ip_getActiveCollisionBox(instance.getBoundingBox());
     }
     
     @Inject(
-        method = "checkInsideBlocks",
+        method = "checkInsideBlocks(Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/entity/InsideBlockEffectApplier$StepBasedCollector;Lit/unimi/dsi/fastutil/longs/LongSet;I)I",
         at = @At(
             value = "INVOKE_ASSIGN",
-            target = "Lnet/minecraft/world/entity/Entity;getBoundingBox()Lnet/minecraft/world/phys/AABB;",
+            target = "Lnet/minecraft/world/entity/Entity;makeBoundingBox(Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/AABB;",
             shift = At.Shift.AFTER
         ),
         locals = LocalCapture.CAPTURE_FAILHARD,
         cancellable = true
     )
-    private void onCheckInsideBlocks(CallbackInfo ci, AABB box) {
-        if (box == null) {
-            ci.cancel();
+    private void onCheckInsideBlocks(Vec3 vec3, Vec3 vec32, InsideBlockEffectApplier.StepBasedCollector stepBasedCollector, LongSet longSet, int i, CallbackInfoReturnable<Integer> cir) {
+        if (vec3 == null) {
+            cir.cancel();
         }
     }
     
     // avoid suffocation when colliding with a portal on wall
-    @Inject(method = "Lnet/minecraft/world/entity/Entity;isInWall()Z", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "isInWall()Z", at = @At("HEAD"), cancellable = true)
     private void onIsInsideWall(CallbackInfoReturnable<Boolean> cir) {
         if (ip_isRecentlyCollidingWithPortal()) {
             cir.setReturnValue(false);
@@ -188,7 +190,7 @@ public abstract class MixinEntity implements IEEntity, ImmPtlEntityExtension {
     
     // for teleportation debug
     @Inject(
-        method = "Lnet/minecraft/world/entity/Entity;setPosRaw(DDD)V",
+        method = "setPosRaw(DDD)V",
         at = @At("HEAD")
     )
     private void onSetPos(double nx, double ny, double nz, CallbackInfo ci) {
@@ -272,7 +274,7 @@ public abstract class MixinEntity implements IEEntity, ImmPtlEntityExtension {
             ip_portalCollisionHandler.update(this_);
         }
         
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             IPMcHelper.onClientEntityTick(this_);
         }
     }

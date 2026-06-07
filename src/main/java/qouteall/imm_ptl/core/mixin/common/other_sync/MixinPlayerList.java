@@ -42,7 +42,7 @@ public class MixinPlayerList {
     @Final
     private MinecraftServer server;
     
-    @Inject(method = "Lnet/minecraft/server/players/PlayerList;sendLevelInfo(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/server/level/ServerLevel;)V", at = @At("RETURN"))
+    @Inject(method = "sendLevelInfo(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/server/level/ServerLevel;)V", at = @At("RETURN"))
     private void onSendWorldInfo(ServerPlayer player, ServerLevel world, CallbackInfo ci) {
         if (!ServerTeleportationManager.of(player.server).isFiringMyChangeDimensionEvent) {
             GlobalPortalStorage.onPlayerLoggedIn(player);
@@ -63,7 +63,7 @@ public class MixinPlayerList {
     //with redirection
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Inject(
-        method = "Lnet/minecraft/server/players/PlayerList;broadcastAll(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/resources/ResourceKey;)V",
+        method = "broadcastAll(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/resources/ResourceKey;)V",
         at = @At("HEAD"),
         cancellable = true
     )
@@ -126,7 +126,7 @@ public class MixinPlayerList {
                 )) {
                     rec.player.connection.send(
                         PacketRedirection.createRedirectedMessage(
-                            rec.player.getServer(),
+                            rec.player.level().getServer(),
                             dimension, (Packet<ClientGamePacketListener>) packet
                         )
                     );

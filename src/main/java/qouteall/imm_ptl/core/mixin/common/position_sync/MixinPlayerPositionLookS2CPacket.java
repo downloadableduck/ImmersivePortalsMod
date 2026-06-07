@@ -24,8 +24,8 @@ public class MixinPlayerPositionLookS2CPacket implements IEPlayerPositionLookS2C
         playerDimension = dimension;
     }
     
-    @Inject(method = "Lnet/minecraft/network/protocol/game/ClientboundPlayerPositionPacket;write(Lnet/minecraft/network/FriendlyByteBuf;)V", at = @At("RETURN"))
+    /*@Inject(method = "Lnet/minecraft/network/protocol/game/ClientboundPlayerPositionPacket;write(Lnet/minecraft/network/FriendlyByteBuf;)V", at = @At("RETURN"))
     private void onWrite(FriendlyByteBuf buf, CallbackInfo ci) {
         buf.writeResourceKey(playerDimension);
-    }
+    }*/
 }

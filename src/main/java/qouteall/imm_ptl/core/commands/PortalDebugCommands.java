@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.logging.LogUtils;
+import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.commands.CommandSourceStack;
@@ -76,6 +77,10 @@ import static qouteall.imm_ptl.core.chunk_loading.ImmPtlChunkTickets.getDistance
 
 public class PortalDebugCommands {
     private static final Logger LOGGER = LogUtils.getLogger();
+
+    static boolean hasPermission(int i) {
+        return true;
+    }
     
     static void registerDebugCommands(
         LiteralArgumentBuilder<CommandSourceStack> builder
@@ -106,7 +111,7 @@ public class PortalDebugCommands {
                     
                     Validate.isTrue(Math.abs(viewLength) > 0.1);
                     
-                    /**{@link qouteall.imm_ptl.core.render.TransformationManager.RemoteCallables#enableIsometricView(float)}*/
+                    /**{@link TransformationManager.RemoteCallables#enableIsometricView(float)}*/
                     McRemoteProcedureCall.tellClientToInvoke(
                         player,
                         "qouteall.imm_ptl.core.render.TransformationManager.RemoteCallables.enableIsometricView",
@@ -156,7 +161,7 @@ public class PortalDebugCommands {
         builder.then(Commands.literal("profile")
             .then(Commands
                 .literal("set_lag_logging_threshold")
-                .requires(serverCommandSource -> serverCommandSource.hasPermission(4))
+                .requires(serverCommandSource -> hasPermission(4))
                 .then(Commands.argument("ms", IntegerArgumentType.integer())
                     .executes(context -> {
                         int ms = IntegerArgumentType.getInteger(context, "ms");
@@ -167,7 +172,7 @@ public class PortalDebugCommands {
                 )
             ).then(Commands
                 .literal("gc")
-                .requires(serverCommandSource -> serverCommandSource.hasPermission(4))
+                .requires(serverCommandSource -> hasPermission(4))
                 .executes(context -> {
                     System.gc();
                     
@@ -190,7 +195,7 @@ public class PortalDebugCommands {
         
         builder.then(Commands
             .literal("create_command_stick")
-            .requires(serverCommandSource -> serverCommandSource.hasPermission(2))
+            .requires(serverCommandSource -> hasPermission(2))
             .then(Commands.argument("command", StringArgumentType.string())
                 .executes(context -> {
                     PortalCommand.createCommandStickCommandSignal.emit(
@@ -246,7 +251,7 @@ public class PortalDebugCommands {
         
         builder.then(Commands
             .literal("erase_chunk")
-            .requires(serverCommandSource -> serverCommandSource.hasPermission(3))
+            .requires(serverCommandSource -> hasPermission(3))
             .then(Commands.argument("rChunks", IntegerArgumentType.integer())
                 .executes(context -> {
                     ServerPlayer player = context.getSource().getPlayerOrException();
@@ -284,7 +289,7 @@ public class PortalDebugCommands {
         
         builder.then(Commands
             .literal("report_chunk_loaders")
-            .requires(serverCommandSource -> serverCommandSource.hasPermission(3))
+            .requires(serverCommandSource -> hasPermission(3))
             .executes(context -> {
                 ServerPlayer player = context.getSource().getPlayerOrException();
                 ChunkVisibility.foreachBaseChunkLoaders(
@@ -301,7 +306,7 @@ public class PortalDebugCommands {
         
         builder.then(Commands
             .literal("report_server_entities_nearby")
-            .requires(serverCommandSource -> serverCommandSource.hasPermission(3))
+            .requires(serverCommandSource -> hasPermission(3))
             .executes(context -> {
                 ServerPlayer player = context.getSource().getPlayerOrException();
                 List<Entity> entities = player.level().getEntitiesOfClass(
@@ -317,7 +322,7 @@ public class PortalDebugCommands {
         
         builder.then(Commands
             .literal("report_loaded_portals")
-            .requires(serverCommandSource -> serverCommandSource.hasPermission(3))
+            .requires(serverCommandSource -> hasPermission(3))
             .executes(context -> {
                 CommandSourceStack source = context.getSource();
                 MinecraftServer server = source.getServer();
@@ -338,7 +343,7 @@ public class PortalDebugCommands {
         );
         
         builder.then(Commands.literal("is_chunk_loaded")
-            .requires(serverCommandSource -> serverCommandSource.hasPermission(2))
+            .requires(serverCommandSource -> hasPermission(2))
             .then(Commands.argument("dim", DimensionArgument.dimension())
                 .then(Commands.argument("chunkX", IntegerArgumentType.integer())
                     .then(Commands.argument("chunkZ", IntegerArgumentType.integer())
@@ -358,7 +363,7 @@ public class PortalDebugCommands {
         );
         
         builder.then(Commands.literal("report_chunk_at")
-            .requires(serverCommandSource -> serverCommandSource.hasPermission(2))
+            .requires(serverCommandSource -> hasPermission(2))
             .then(Commands.argument("dim", DimensionArgument.dimension())
                 .then(Commands.argument("pos", BlockPosArgument.blockPos())
                     .executes(context -> {
@@ -382,7 +387,7 @@ public class PortalDebugCommands {
                 CHelper.printChat(
                     String.format(
                         "On Server %s %s removal:%s added:%s age:%s",
-                        player.level().dimension().location(),
+                        player.level().dimension().identifier(),
                         player.blockPosition(),
                         player.getRemovalReason(),
                         player.level().getEntity(player.getId()) != null,
@@ -400,7 +405,7 @@ public class PortalDebugCommands {
         );
         
         builder.then(Commands.literal("list_portals")
-            .requires(serverCommandSource -> serverCommandSource.hasPermission(3))
+            .requires(serverCommandSource -> hasPermission(3))
             .executes(context -> {
                 ServerPlayer player = context.getSource().getPlayerOrException();
                 
@@ -408,7 +413,7 @@ public class PortalDebugCommands {
                 result.append("Server Portals\n");
                 
                 for (ServerLevel world : MiscHelper.getServer().getAllLevels()) {
-                    result.append(world.dimension().location().toString() + "\n");
+                    result.append(world.dimension().identifier().toString() + "\n");
                     for (Entity entity : world.getAllEntities()) {
                         for (Entity e : world.getAllEntities()) {
                             if (e instanceof Portal) {
@@ -430,7 +435,7 @@ public class PortalDebugCommands {
         );
         
         builder.then(Commands.literal("report_resource_consumption")
-            .requires(serverCommandSource -> serverCommandSource.hasPermission(2))
+            .requires(serverCommandSource -> hasPermission(2))
             .executes(context -> {
                 StringBuilder str = new StringBuilder();
                 
@@ -453,26 +458,26 @@ public class PortalDebugCommands {
         );
         
         builder.then(Commands.literal("report_chunk_ticket_stat")
-            .requires(serverCommandSource -> serverCommandSource.hasPermission(2))
+            .requires(serverCommandSource -> hasPermission(2))
             .executes(context -> {
                 ServerLevel world = context.getSource().getLevel();
-                Iterable<ChunkHolder> chunkHolders = ((IEChunkMap_Accessor) world.getChunkSource().chunkMap).ip_getChunks();
-                
-                Object2IntOpenHashMap<TicketType<?>> stat = new Object2IntOpenHashMap<>();
-                for (ChunkHolder chunkHolder : chunkHolders) {
+                Long2ObjectLinkedOpenHashMap<ChunkHolder> chunkHolders = ((IEChunkMap_Accessor) world.getChunkSource().chunkMap).ip_getChunks();
+
+                Object2IntOpenHashMap<TicketType> stat = new Object2IntOpenHashMap<>();
+                for (ChunkHolder chunkHolder : chunkHolders.values()) {
                     long chunkPos = chunkHolder.getPos().toLong();
-                    SortedArraySet<Ticket<?>> chunkTickets =
+                    List<Ticket> chunkTickets =
                         ((IEDistanceManager) getDistanceManager(world))
                             .portal_getTicketSet(chunkPos);
                     
-                    for (Ticket<?> ticket : chunkTickets) {
+                    for (Ticket ticket : chunkTickets) {
                         stat.addTo(ticket.getType(), 1);
                     }
                 }
                 
                 context.getSource().sendSuccess(() -> Component.literal(""), false);
-                for (Object2IntMap.Entry<TicketType<?>> entry : stat.object2IntEntrySet()) {
-                    TicketType<?> ticketType = entry.getKey();
+                for (Object2IntMap.Entry<TicketType> entry : stat.object2IntEntrySet()) {
+                    TicketType ticketType = entry.getKey();
                     context.getSource().sendSuccess(
                         () -> Component.literal(ticketType.toString() + " " + entry.getIntValue()),
                         false
@@ -484,7 +489,7 @@ public class PortalDebugCommands {
         );
         
         builder.then(Commands.literal("report_per_player_chunk_loading")
-            .requires(serverCommandSource -> serverCommandSource.hasPermission(2))
+            .requires(serverCommandSource -> hasPermission(2))
             .executes(context -> {
                 List<ServerPlayer> players = MiscHelper.getServer().getPlayerList().getPlayers();
                 for (ServerPlayer player : players) {
@@ -497,7 +502,7 @@ public class PortalDebugCommands {
         );
         
         builder.then(Commands.literal("save_all_chunks")
-            .requires(serverCommandSource -> serverCommandSource.hasPermission(2))
+            .requires(serverCommandSource -> hasPermission(2))
             .executes(context -> {
                 MinecraftServer server = context.getSource().getServer();
                 server.saveAllChunks(true, true, false);
@@ -507,7 +512,7 @@ public class PortalDebugCommands {
         
         builder.then(Commands
             .literal("simplify_portal_mesh")
-            .requires(serverCommandSource -> serverCommandSource.hasPermission(2))
+            .requires(serverCommandSource -> hasPermission(2))
             .executes(context -> PortalCommand.processPortalTargetedCommand(context, portal -> {
                 PortalShape portalShape = portal.getPortalShape();
                 
@@ -575,13 +580,13 @@ public class PortalDebugCommands {
         
         builder.then(Commands
             .literal("check_biome_registry")
-            .requires(serverCommandSource -> serverCommandSource.hasPermission(3))
+            .requires(serverCommandSource -> hasPermission(3))
             .executes(context -> {
                 RegistryAccess.Frozen registryAccess = MiscHelper.getServer().registryAccess();
-                Registry<Biome> biomes = registryAccess.registryOrThrow(Registries.BIOME);
+                Registry<Biome> biomes = registryAccess.lookupOrThrow(Registries.BIOME);
                 Map<String, Integer> map = new HashMap<>();
                 for (Map.Entry<ResourceKey<Biome>, Biome> entry : biomes.entrySet()) {
-                    String strId = entry.getKey().location().toString();
+                    String strId = entry.getKey().identifier().toString();
                     int intId = biomes.getId(entry.getValue());
                     map.put(strId, intId);
                 }
@@ -603,7 +608,7 @@ public class PortalDebugCommands {
 //                Registry<Biome> biomes = MiscHelper.getServer().registryAccess().registryOrThrow(Registries.BIOME);
 //
 //                StringBuilder builder1 = new StringBuilder();
-//                for (ResourceLocation resourceLocation : biomes.keySet()) {
+//                for (Identifier resourceLocation : biomes.keySet()) {
 //                    builder1.append("\"");
 //                    builder1.append(resourceLocation);
 //                    builder1.append("\",\n");
@@ -621,7 +626,7 @@ public class PortalDebugCommands {
 //            .executes(context -> {
 //                MiscHelper.getServer().getAllLevels().forEach(world -> {
 //                    ChunkGenerator generator = world.getChunkSource().getGenerator();
-//                    Helper.log(world.dimension().location());
+//                    Helper.log(world.dimension().identifier());
 //                    Helper.log(McHelper.serializeToJson(generator, ChunkGenerator.CODEC));
 //                    Helper.log(McHelper.serializeToJson(
 //                        world.dimensionType(),
@@ -729,8 +734,8 @@ public class PortalDebugCommands {
             
             DistanceManager distanceManager =
                 ((IEServerChunkCache) world.getChunkSource()).ip_getDistanceManager();
-            SortedArraySet<Ticket<?>> tickets = ((IEDistanceManager) distanceManager).portal_getTicketSet(longChunkPos);
-            for (Ticket<?> ticket : tickets) {
+            List<Ticket> tickets = ((IEDistanceManager) distanceManager).portal_getTicketSet(longChunkPos);
+            for (Ticket ticket : tickets) {
                 McHelper.serverLog(
                     player,
                     ticket.toString()
@@ -753,7 +758,7 @@ public class PortalDebugCommands {
         
         subStr.append(String.format(
             "%s:\nImmPtl Tracked Chunks: %s\nImmPtl Loading Ticket:%s\nChunks: %s\nEntities:%s Entity Sections:%s\n",
-            world.dimension().location(),
+            world.dimension().identifier(),
             ImmPtlChunkTracking.getLoadedChunkNum(world.dimension()),
             dimTicketManager.getLoadedChunkNum(),
             world.getChunkSource().chunkMap.size(),

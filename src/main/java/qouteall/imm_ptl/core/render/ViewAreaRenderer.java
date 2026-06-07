@@ -1,14 +1,15 @@
 package qouteall.imm_ptl.core.render;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.opengl.GlProgram;
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import qouteall.imm_ptl.core.CHelper;
@@ -81,15 +82,15 @@ public class ViewAreaRenderer {
         
         CHelper.enableDepthClamp();
         
-        ShaderInstance shader = MyRenderHelper.portalAreaShader;
-        RenderSystem.setShader(() -> shader);
+        GlProgram shader = MyRenderHelper.portalAreaShader;
+        //RenderSystem.setShaderLights(new GpuBufferSlice());
         
-        shader.MODEL_VIEW_MATRIX.set(modelViewMatrix);
-        shader.PROJECTION_MATRIX.set(projectionMatrix);
+       // shader.MODEL_VIEW_MATRIX.set(modelViewMatrix);
+        //shader.PROJECTION_MATRIX.set(projectionMatrix);
         
         FrontClipping.updateClippingEquationUniformForCurrentShader(false);
         
-        shader.apply();
+        //shader.apply();
         
         ViewAreaRenderer.buildPortalViewAreaTrianglesBuffer(
             fogColor,
@@ -98,7 +99,7 @@ public class ViewAreaRenderer {
             RenderStates.getPartialTick()
         );
         
-        shader.clear();
+        //shader.clear();
         
         GlStateManager._enableCull();
         CHelper.disableDepthClamp();
@@ -121,7 +122,7 @@ public class ViewAreaRenderer {
         Vec3 fogColor, Portal portal,
         Vec3 cameraPos, float partialTick
     ) {
-        Tesselator tessellator = RenderSystem.renderThreadTesselator();
+        Tesselator tessellator = MyRenderHelper.tesselator;
         BufferBuilder bufferBuilder = tessellator
             .begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
         
@@ -141,7 +142,7 @@ public class ViewAreaRenderer {
         
         portal.renderViewAreaMesh(originRelativeToCamera, vertexOutput);
         
-        BufferUploader.draw(Objects.requireNonNull(bufferBuilder.build()));
+        //BufferUploader.draw(Objects.requireNonNull(bufferBuilder.build()));
     }
     
     public static void outputTriangle(

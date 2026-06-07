@@ -1,6 +1,6 @@
 package qouteall.imm_ptl.core.compat.iris_compatibility;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.irisshaders.iris.Iris;
 import net.irisshaders.iris.pipeline.IrisRenderingPipeline;
@@ -111,7 +111,7 @@ public class ExperimentalIrisPortalRenderer extends PortalRenderer {
         ViewAreaRenderer.renderPortalArea(
             portal, Vec3.ZERO,
             modelView,
-            RenderSystem.getProjectionMatrix(),
+            RenderSystem.getModelViewMatrix(),
             false,
             false,
             true,
@@ -161,8 +161,8 @@ public class ExperimentalIrisPortalRenderer extends PortalRenderer {
     }
     
     protected void doPortalRendering(Matrix4f modelView) {
-        RenderSystem.enableDepthTest();
-        RenderSystem.depthMask(true);
+        GlStateManager._enableDepthTest();
+        GlStateManager._depthMask(true);
         
         client.getProfiler().popPush("render_portal_total");
         renderPortals(modelView);
@@ -290,7 +290,7 @@ public class ExperimentalIrisPortalRenderer extends PortalRenderer {
         ViewAreaRenderer.renderPortalArea(
             portal, Vec3.ZERO,
             modelView,
-            RenderSystem.getProjectionMatrix(),
+            RenderSystem.getModelViewMatrix(),
             true,
             false, // don't modify color
             true,

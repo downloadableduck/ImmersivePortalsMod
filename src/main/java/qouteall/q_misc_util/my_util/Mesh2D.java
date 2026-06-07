@@ -1694,8 +1694,8 @@ public class Mesh2D {
     }
     
     public static @Nullable Mesh2D fromTag(CompoundTag tag) {
-        ListTag pointCoords = tag.getList("pointCoords", Tag.TAG_DOUBLE);
-        ListTag triangles = tag.getList("triangles", Tag.TAG_INT);
+        ListTag pointCoords = tag.getList("pointCoords").get();
+        ListTag triangles = tag.getList("triangles").get();
         
         if (pointCoords.isEmpty() || pointCoords.size() % 2 != 0) {
             return null;
@@ -1710,17 +1710,17 @@ public class Mesh2D {
         Mesh2D mesh = new Mesh2D();
         
         for (int i = 0; i < triangles.size() / 3; i++) {
-            int p0Index = triangles.getInt(i * 3);
-            int p1Index = triangles.getInt(i * 3 + 1);
-            int p2Index = triangles.getInt(i * 3 + 2);
+            int p0Index = triangles.getInt(i * 3).get();
+            int p1Index = triangles.getInt(i * 3 + 1).get();
+            int p2Index = triangles.getInt(i * 3 + 2).get();
             
             mesh.addTriangle(
-                pointCoords.getDouble(p0Index * 2),
-                pointCoords.getDouble(p0Index * 2 + 1),
-                pointCoords.getDouble(p1Index * 2),
-                pointCoords.getDouble(p1Index * 2 + 1),
-                pointCoords.getDouble(p2Index * 2),
-                pointCoords.getDouble(p2Index * 2 + 1)
+                pointCoords.getDouble(p0Index * 2).get(),
+                pointCoords.getDouble(p0Index * 2 + 1).get(),
+                pointCoords.getDouble(p1Index * 2).get(),
+                pointCoords.getDouble(p1Index * 2 + 1).get(),
+                pointCoords.getDouble(p2Index * 2).get(),
+                pointCoords.getDouble(p2Index * 2 + 1).get()
             );
         }
         

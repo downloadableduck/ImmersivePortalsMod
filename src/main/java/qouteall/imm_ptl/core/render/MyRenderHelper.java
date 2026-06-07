@@ -1,25 +1,33 @@
 package qouteall.imm_ptl.core.render;
 
+import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.opengl.GlProgram;
+import com.mojang.blaze3d.opengl.GlShaderModule;
+import com.mojang.blaze3d.opengl.GlStateManager;
+import com.mojang.blaze3d.opengl.Uniform;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.shaders.Uniform;
+import com.mojang.blaze3d.platform.DestFactor;
+import com.mojang.blaze3d.platform.SourceFactor;
+import com.mojang.blaze3d.shaders.ShaderType;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.*;
+import net.irisshaders.iris.mixin.MixinCompiledShaderProgram;
+import net.irisshaders.iris.mixinterface.ShaderInstanceInterface;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.PostChain;
+import net.minecraft.client.renderer.ShaderManager;
 import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.Validate;
 import org.joml.Matrix4f;
+import org.lwjgl.opengl.GL11;
 import qouteall.imm_ptl.core.CHelper;
 import qouteall.imm_ptl.core.ClientWorldLoader;
 import qouteall.imm_ptl.core.McHelper;
@@ -55,8 +63,10 @@ public class MyRenderHelper {
     
     public static final Minecraft client = Minecraft.getInstance();
     
-    public static final SignalBiArged<ResourceProvider, Consumer<ShaderInstance>> loadShaderSignal =
+    public static final SignalBiArged<ResourceProvider, Consumer<GlProgram>> loadShaderSignal =
         new SignalBiArged<>();
+
+    static Tesselator tesselator = new Tesselator(1536);
     
     public static void init() {
         
@@ -69,6 +79,7 @@ public class MyRenderHelper {
                 );
                 resultConsumer.accept(shader);
                 drawFbInAreaShader = shader;
+                Minecraft.getInstance().getShaderManager();
             }
             catch (IOException e) {
                 throw new RuntimeException(e);
@@ -77,30 +88,30 @@ public class MyRenderHelper {
         
         loadShaderSignal.connect((resourceManager, resultConsumer) -> {
             try {
-                ShaderInstance shader = new ShaderInstance(
-                    getResourceFactory(resourceManager),
-                    "portal_area",
-                    DefaultVertexFormat.POSITION_COLOR
-                );
+                GlProgram shader = GlProgram.link(
+                                        new GlShaderModule(GlStateManager.glCreateProgram(), Identifier.withDefaultNamespace("portal_area"), ShaderType.byLocation(Identifier.withDefaultNamespace("portal_area"))),
+                                        new GlShaderModule(GlStateManager.glCreateProgram(), Identifier.withDefaultNamespace("portal_area"), ShaderType.byLocation(Identifier.withDefaultNamespace("portal_area"))),
+                        DefaultVertexFormat.POSITION_COLOR,
+                        "portal_area"
+                                );
                 resultConsumer.accept(shader);
                 portalAreaShader = shader;
-            }
-            catch (IOException e) {
+            } catch (ShaderManager.CompilationException e) {
                 throw new RuntimeException(e);
             }
         });
         
         loadShaderSignal.connect((resourceManager, resultConsumer) -> {
             try {
-                ShaderInstance shader = new ShaderInstance(
-                    getResourceFactory(resourceManager),
-                    "blit_screen_noblend",
-                    DefaultVertexFormat.POSITION_TEX_COLOR
-                );
+                GlProgram shader = GlProgram.link(
+                                        new GlShaderModule(GlStateManager.glCreateProgram(), Identifier.withDefaultNamespace("blit_screen_noblend"), ShaderType.byLocation(Identifier.withDefaultNamespace("blit_screen_noblend"))),
+                                        new GlShaderModule(GlStateManager.glCreateProgram(), Identifier.withDefaultNamespace("blit_screen_noblend"), ShaderType.byLocation(Identifier.withDefaultNamespace("blit_screen_noblend"))),
+                        DefaultVertexFormat.POSITION_TEX_COLOR,
+                        "blit_screen_noblend"
+                                );
                 resultConsumer.accept(shader);
                 blitScreenNoBlendShader = shader;
-            }
-            catch (IOException e) {
+            } catch (ShaderManager.CompilationException e) {
                 throw new RuntimeException(e);
             }
         });
@@ -110,8 +121,8 @@ public class MyRenderHelper {
     private static ResourceProvider getResourceFactory(ResourceProvider resourceManager) {
         ResourceProvider resourceFactory = new ResourceProvider() {
             @Override
-            public Optional<Resource> getResource(ResourceLocation resourceLocation) {
-                ResourceLocation corrected = McHelper.newResourceLocation(
+            public Optional<Resource> getResource(Identifier resourceLocation) {
+                Identifier corrected = McHelper.newIdentifier(
                     "immersive_portals", resourceLocation.getPath());
                 return resourceManager.getResource(corrected);
             }
@@ -119,29 +130,34 @@ public class MyRenderHelper {
         return resourceFactory;
     }
     
-    public static class DrawFbInAreaShader extends ShaderInstance {
+    public static class DrawFbInAreaShader extends GlProgram {
         
-        public final Uniform uniformW;
-        public final Uniform uniformH;
+        public Uniform uniformW;
+        public Uniform uniformH;
         
         public DrawFbInAreaShader(
             ResourceProvider factory, String name, VertexFormat format
         ) throws IOException {
-            super(factory, name, format);
-            
+            super(GlStateManager.glCreateProgram(), name);
+
             uniformW = getUniform("w");
             uniformH = getUniform("h");
         }
         
         void loadWidthHeight(int w, int h) {
-            uniformW.set((float) w);
-            uniformH.set((float) h);
+            uniformW  = new Uniform.Sampler(w, h);
+            uniformH = new Uniform.Sampler(w, h);
+        }
+
+        @Override
+        public void close() {
+
         }
     }
     
     public static DrawFbInAreaShader drawFbInAreaShader;
-    public static ShaderInstance portalAreaShader;
-    public static ShaderInstance blitScreenNoBlendShader;
+    public static GlProgram portalAreaShader;
+    public static GlProgram blitScreenNoBlendShader;
     
     public static void drawPortalAreaWithFramebuffer(
         Portal portal,
@@ -156,7 +172,8 @@ public class MyRenderHelper {
         GlStateManager._viewport(0, 0, textureProvider.width, textureProvider.height);
         
         DrawFbInAreaShader shader = drawFbInAreaShader;
-        shader.setSampler("DiffuseSampler", textureProvider.getColorTextureId());
+        // commented out code
+        /*shader.setSampler("DiffuseSampler", textureProvider.getColorTexture());
         shader.loadWidthHeight(textureProvider.width, textureProvider.height);
         
         if (shader.MODEL_VIEW_MATRIX != null) {
@@ -167,7 +184,7 @@ public class MyRenderHelper {
             shader.PROJECTION_MATRIX.set(projectionMatrix);
         }
         
-        shader.apply();
+        shader.apply();*/
         
         ViewAreaRenderer.buildPortalViewAreaTrianglesBuffer(
             Vec3.ZERO,//fog
@@ -177,7 +194,7 @@ public class MyRenderHelper {
         );
         
         
-        shader.clear();
+        shader.close();
     }
     
     public static void renderScreenTriangle() {
@@ -194,7 +211,7 @@ public class MyRenderHelper {
     }
     
     public static void testOneTriangle(int r, int g, int b, int a) {
-        ShaderInstance shader = GameRenderer.getPositionColorShader();
+        /*GlProgram shader = GameRenderer.getPositionColorShader();
         Validate.notNull(shader);
         
         Matrix4f identityMatrix = new Matrix4f();
@@ -203,7 +220,7 @@ public class MyRenderHelper {
         shader.MODEL_VIEW_MATRIX.set(identityMatrix);
         shader.PROJECTION_MATRIX.set(identityMatrix);
         
-        shader.apply();
+        shader.apply();*/
         
         Tesselator tessellator = Tesselator.getInstance();
         BufferBuilder bufferBuilder = tessellator
@@ -225,10 +242,10 @@ public class MyRenderHelper {
         bufferBuilder.addVertex(1, 0, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex(0, 1, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex(-1, 0, 0).setColor(r, g, b, a);
+
+        //MultiBufferSource.BufferSource.draw(bufferBuilder.build());
         
-        BufferUploader.draw(bufferBuilder.build());
-        
-        shader.clear();
+        //shader.clear();
     }
     
     /**
@@ -236,19 +253,18 @@ public class MyRenderHelper {
      */
     @IPVanillaCopy
     public static void renderScreenTriangle(int r, int g, int b, int a) {
-        ShaderInstance shader = GameRenderer.getPositionColorShader();
-        Validate.notNull(shader);
+        //ShaderInstance shader = GameRenderer.getPositionColorShader();
+       // Validate.notNull(shader);
         
         Matrix4f identityMatrix = new Matrix4f();
         identityMatrix.identity();
         
-        shader.MODEL_VIEW_MATRIX.set(identityMatrix);
-        shader.PROJECTION_MATRIX.set(identityMatrix);
+       // shader.MODEL_VIEW_MATRIX.set(identityMatrix);
+        //shader.PROJECTION_MATRIX.set(identityMatrix);
         
-        shader.apply();
+        //shader.apply();
         
-        Tesselator tessellator = RenderSystem.renderThreadTesselator();
-        BufferBuilder bufferBuilder = tessellator.
+        BufferBuilder bufferBuilder = tesselator.
             begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
         
         bufferBuilder.addVertex(1, -1, 0).setColor(r, g, b, a);
@@ -259,9 +275,9 @@ public class MyRenderHelper {
         bufferBuilder.addVertex(-1, -1, 0).setColor(r, g, b, a);
         bufferBuilder.addVertex(1, -1, 0).setColor(r, g, b, a);
         
-        BufferUploader.draw(bufferBuilder.build());
+        //BufferUploader.draw(bufferBuilder.build());
         
-        shader.clear();
+        //shader.clear();
     }
     
     /**
@@ -275,8 +291,8 @@ public class MyRenderHelper {
         int x = 0;
         int y = 0;
         
-        int viewportWidth = textureProvider.viewWidth;
-        int viewportHeight = textureProvider.viewHeight;
+        int viewportWidth = textureProvider.width;
+        int viewportHeight = textureProvider.height;
         
         drawFramebufferWithCoordinatesAndDimensions(
             textureProvider, doUseAlphaBlend, doEnableModifyAlpha,
@@ -334,12 +350,12 @@ public class MyRenderHelper {
     ) {
         CHelper.checkGlError();
 
-        RenderSystem.disableDepthTest();
-        RenderSystem.depthMask(false);
-        RenderSystem.viewport(x, textureProvider.viewHeight - viewportHeight - y, viewportWidth, viewportHeight);
+        GlStateManager._disableDepthTest();
+        GlStateManager._depthMask(false);
+        GlStateManager._viewport(x, textureProvider.height - viewportHeight - y, viewportWidth, viewportHeight);
         
         if (doUseAlphaBlend) {
-            RenderSystem.enableBlend();
+            GlStateManager._enableBlend();
             
             // this is used for rendering a FB onto screen when the FB contains translucent things
             // the FB should initialize with zero color and zero alpha
@@ -348,44 +364,44 @@ public class MyRenderHelper {
             // we want the roughtly same effect of rendering the translucent thing directly onto current FB, so we want:
             // color = contentColor * contentAlpha + dstColor * (1-contentAlpha)
             // color = fbColor * 1 + dstColor * (1-contentAlpha)
-            RenderSystem.blendFuncSeparate(
-                GlStateManager.SourceFactor.ONE,
-                GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
-                GlStateManager.SourceFactor.ZERO,
-                GlStateManager.DestFactor.ONE
+            GlStateManager._blendFuncSeparate(
+                    SourceFactor.ONE.ordinal(),
+                    DestFactor.ONE_MINUS_SRC_ALPHA.ordinal(),
+                    SourceFactor.ZERO.ordinal(),
+                    DestFactor.ONE.ordinal()
             );
         }
         else {
-            RenderSystem.disableBlend();
+            GlStateManager._disableBlend();
         }
         
         if (doEnableModifyAlpha) {
-            RenderSystem.colorMask(true, true, true, true);
+            GlStateManager._colorMask(true, true, true, true);
         }
         else {
-            RenderSystem.colorMask(true, true, true, false);
+            GlStateManager._colorMask(true, true, true, false);
         }
         
-        ShaderInstance shader = doUseAlphaBlend ?
-            client.gameRenderer.blitShader : blitScreenNoBlendShader;
+        GlProgram shader = /*doUseAlphaBlend ?
+            client.gameRenderer. :*/ blitScreenNoBlendShader;
         
         Validate.notNull(shader, "shader is null");
         
-        shader.setSampler("DiffuseSampler", textureProvider.getColorTextureId());
-        shader.apply();
-        BufferBuilder bufferBuilder = RenderSystem.renderThreadTesselator().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLIT_SCREEN);
+        //shader.setSampler("DiffuseSampler", textureProvider.getColorTexture());
+        //shader.apply();
+        BufferBuilder bufferBuilder = tesselator.begin(VertexFormat.Mode.QUADS, VertexFormat.builder().add("Position", VertexFormatElement.POSITION).build());
         bufferBuilder.addVertex(0.0f, 0.0f, 0.0f);
         bufferBuilder.addVertex(1.0f, 0.0f, 0.0f);
         bufferBuilder.addVertex(1.0f, 1.0f, 0.0f);
         bufferBuilder.addVertex(0.0f, 1.0f, 0.0f);
-        BufferUploader.draw(bufferBuilder.buildOrThrow());
-        shader.clear();
+        //BufferUploader.draw(bufferBuilder.buildOrThrow());
+        //shader.clear();
 
-        RenderSystem.depthMask(true);
-        RenderSystem.colorMask(true, true, true, true);
+        GlStateManager._depthMask(true);
+        GlStateManager._colorMask(true, true, true, true);
         
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
+        GlStateManager._enableBlend();
+        GlStateManager._blendFuncSeparate(SourceFactor.SRC_ALPHA.ordinal(), DestFactor.ONE_MINUS_SRC_ALPHA.ordinal(), SourceFactor.ONE.ordinal(), DestFactor.ZERO.ordinal());
         
         CHelper.checkGlError();
     }
@@ -433,10 +449,10 @@ public class MyRenderHelper {
     
     public static void clearAlphaTo1(RenderTarget mcFrameBuffer) {
         mcFrameBuffer.bindWrite(true);
-        RenderSystem.colorMask(false, false, false, true);
-        RenderSystem.clearColor(0, 0, 0, 1.0f);
-        RenderSystem.clear(GL_COLOR_BUFFER_BIT, true);
-        RenderSystem.colorMask(true, true, true, true);
+        GlStateManager._colorMask(false, false, false, true);
+        GL11.glClearColor(0, 0, 0, 1.0f);
+        GlStateManager._clear(GL_COLOR_BUFFER_BIT);
+        GlStateManager._colorMask(true, true, true, true);
     }
     
     public static void restoreViewPort() {

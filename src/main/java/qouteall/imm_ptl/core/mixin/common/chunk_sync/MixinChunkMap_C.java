@@ -23,7 +23,7 @@ public abstract class MixinChunkMap_C implements IEChunkMap {
     
     @Shadow
     @Final
-    private ServerLevel level;
+    ServerLevel level;
     
     @Shadow
     protected abstract ChunkHolder getVisibleChunkIfPresent(long long_1);
@@ -74,7 +74,7 @@ public abstract class MixinChunkMap_C implements IEChunkMap {
      * @reason
      */
     @Overwrite
-    private void onChunkReadyToSend(LevelChunk chunk) {
-        ImmPtlChunkTracking.onChunkProvidedDeferred(chunk);
+    private void onChunkReadyToSend(ChunkHolder chunkHolder, LevelChunk levelChunk) {
+        ImmPtlChunkTracking.onChunkProvidedDeferred(levelChunk);
     }
 }

@@ -1,7 +1,7 @@
 package qouteall.imm_ptl.core.render;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -61,8 +61,8 @@ public class GuiPortalRendering {
         if (!worldRenderInfo.doRenderSky) {
             // pre-clear the framebuffer with 0 alpha, if it doesn't render the sky
             GlStateManager._colorMask(true, true, true, true);
-            framebuffer.setClearColor(0, 0, 0, 0);
-            framebuffer.clear(true);
+            //framebuffer.setClearColor(0, 0, 0, 0);
+            //framebuffer.clear();
         }
         
         framebuffer.bindWrite(true);
@@ -101,7 +101,7 @@ public class GuiPortalRendering {
         
         RenderTarget mcFB = Minecraft.getInstance().getMainRenderTarget();
         if (renderTarget.width != mcFB.width || renderTarget.height != mcFB.height) {
-            renderTarget.resize(mcFB.width, mcFB.height, true);
+            renderTarget.resize(mcFB.width, mcFB.height);
             LOGGER.info("Resized Framebuffer for GUI Portal Rendering");
         }
         

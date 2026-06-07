@@ -1,7 +1,7 @@
 package qouteall.imm_ptl.core.compat.iris_compatibility;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import com.mojang.blaze3d.platform.GlStateManager;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL30C;
@@ -17,7 +17,7 @@ public class IPIrisHelper {
         RenderTarget from, RenderTarget to,
         boolean copyDepth, boolean copyStencil
     ) {
-        from.unbindWrite();
+        //from.unbindWrite();
         
         int mask = 0;
         
@@ -38,8 +38,8 @@ public class IPIrisHelper {
             }
         }
         
-        GlStateManager._glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, from.frameBufferId);
-        GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, to.frameBufferId);
+        //GlStateManager._glBindFramebuffer(GL30C.GL_READ_FRAMEBUFFER, RenderTargetImpl#frameBufferId);
+        //GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, to.frameBufferId);
         
         GL30.glBlitFramebuffer(
             0, 0, from.width, from.height,
@@ -47,7 +47,7 @@ public class IPIrisHelper {
             mask, GL_NEAREST
         );
         
-        from.unbindWrite();
+        //from.unbindWrite();
     }
     
     private static boolean isCopyImageSubDataSupported() {
@@ -58,13 +58,13 @@ public class IPIrisHelper {
         RenderTarget from, RenderTarget to
     ) {
         GL43C.glCopyImageSubData(
-            from.getDepthTextureId(),
+            from.getDepthTexture().usage(),
             GL43C.GL_TEXTURE_2D,
             0,
             0,
             0,
             0,
-            to.getDepthTextureId(),
+            to.getDepthTexture().usage(),
             GL43C.GL_TEXTURE_2D,
             0,
             0,
@@ -80,13 +80,13 @@ public class IPIrisHelper {
         RenderTarget from, RenderTarget to
     ) {
         GL43C.glCopyImageSubData(
-            from.getColorTextureId(),
+            from.getColorTexture().usage(),
             GL43C.GL_TEXTURE_2D,
             0,
             0,
             0,
             0,
-            to.getColorTextureId(),
+            to.getColorTexture().usage(),
             GL43C.GL_TEXTURE_2D,
             0,
             0,

@@ -18,11 +18,8 @@ public abstract class MixinItemEntity_P {
     @Shadow
     public abstract ItemStack getItem();
     
-    @Shadow
-    private @Nullable UUID thrower;
-    
     @Inject(
-        method = "Lnet/minecraft/world/entity/item/ItemEntity;tick()V",
+        method = "tick()V",
         at = @At("TAIL")
     )
     private void onItemTickEnded(CallbackInfo ci) {
@@ -35,14 +32,10 @@ public abstract class MixinItemEntity_P {
             return;
         }
         
-        if (thrower == null) {
-            return;
-        }
-        
         this_.level().getProfiler().push("imm_ptl_item_tick");
         
         CustomPortalGenManager customPortalGenManager =
-            IPPerServerInfo.of(this_.getServer()).customPortalGenManager;
+            IPPerServerInfo.of(this_.level().getServer()).customPortalGenManager;
         if (customPortalGenManager != null) {
             customPortalGenManager.onItemTick(this_);
         }

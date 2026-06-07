@@ -1,5 +1,6 @@
 package qouteall.imm_ptl.core.mixin.common.entity_sync;
 
+import io.netty.channel.ChannelFutureListener;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -21,7 +22,7 @@ public class MixinServerGamePacketListenerImpl_Redirect {
     
     @SuppressWarnings({"rawtypes", "unchecked"})
     @ModifyVariable(
-        method = "send(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketSendListener;)V",
+        method = "send(Lnet/minecraft/network/protocol/Packet;)V",
         at = @At("HEAD"),
         argsOnly = true
     )
@@ -39,15 +40,15 @@ public class MixinServerGamePacketListenerImpl_Redirect {
     
     @SuppressWarnings("unchecked")
     @Inject(
-        method = "send(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketSendListener;)V",
+        method = "send(Lnet/minecraft/network/protocol/Packet;Lio/netty/channel/ChannelFutureListener;)V",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/network/Connection;send(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketSendListener;Z)V"
+            target = "Lnet/minecraft/network/Connection;send(Lnet/minecraft/network/protocol/Packet;Lio/netty/channel/ChannelFutureListener;Z)V"
         ),
         cancellable = true
     )
     private void onSend(
-        Packet<?> packet, @Nullable PacketSendListener packetSendListener, CallbackInfo ci
+            Packet<?> packet, @org.jspecify.annotations.Nullable ChannelFutureListener channelFutureListener, CallbackInfo ci
     ) {
         PacketRedirection.ForceBundleCallback forceBundleCallback = PacketRedirection.getForceBundleCallback();
         if (forceBundleCallback != null) {

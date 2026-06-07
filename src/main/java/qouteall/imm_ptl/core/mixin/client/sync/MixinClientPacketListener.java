@@ -19,6 +19,7 @@ import net.minecraft.network.protocol.game.ClientboundSetTimePacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.vault.VaultBlockEntity;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
@@ -58,7 +59,7 @@ public abstract class MixinClientPacketListener implements IEClientPlayNetworkHa
     public abstract void handleSetEntityPassengersPacket(ClientboundSetPassengersPacket entityPassengersSetS2CPacket_1);
     
     @Shadow
-    protected abstract void applyLightData(int x, int z, ClientboundLightUpdatePacketData data);
+    protected abstract void applyLightData(int x, int z, ClientboundLightUpdatePacketData data, boolean bl);
     
     @Shadow
     @Final
@@ -86,10 +87,10 @@ public abstract class MixinClientPacketListener implements IEClientPlayNetworkHa
     }
     
     @Inject(
-        method = "Lnet/minecraft/client/multiplayer/ClientPacketListener;handleMovePlayer(Lnet/minecraft/network/protocol/game/ClientboundPlayerPositionPacket;)V",
+        method = "handleMovePlayer(Lnet/minecraft/network/protocol/game/ClientboundPlayerPositionPacket;)V",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/util/thread/BlockableEventLoop;)V",
+            target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/network/PacketProcessor;)V",
             shift = At.Shift.AFTER
         )
     )
@@ -110,13 +111,13 @@ public abstract class MixinClientPacketListener implements IEClientPlayNetworkHa
         if (packetDim != playerWorld.dimension()) {
             LOGGER.info(
                 "[ImmPtl] Client accepted position packet in another dimension. Packet: {} {} {} {}. Player: {} {} {} {}",
-                packetDim.location(), packet.getX(), packet.getY(), packet.getZ(),
-                playerWorld.dimension().location(), player.getX(), player.getY(), player.getZ()
+                packetDim.identifier(), packet.change().position().x, packet.change().position().y, packet.change().position().z,
+                playerWorld.dimension().identifier(), player.getX(), player.getY(), player.getZ()
             );
             
             ClientTeleportationManager.forceTeleportPlayer(
                 packetDim,
-                new Vec3(packet.getX(), packet.getY(), packet.getZ())
+                new Vec3(packet.change().position().x, packet.change().position().y, packet.change().position().z)
             );
 
 //            ClientTeleportationManager.disableTeleportFor(2);
@@ -124,17 +125,17 @@ public abstract class MixinClientPacketListener implements IEClientPlayNetworkHa
         
         LOGGER.info(
             "[ImmPtl] Client accepted position packet {} {} {} {}",
-            packetDim.location(), packet.getX(), packet.getY(), packet.getZ()
+            packetDim.identifier(), packet.change().position().x, packet.change().position().y, packet.change().position().z
         );
     }
     
     private boolean isReProcessingPassengerPacket;
     
     @Inject(
-        method = "Lnet/minecraft/client/multiplayer/ClientPacketListener;handleSetEntityPassengersPacket(Lnet/minecraft/network/protocol/game/ClientboundSetPassengersPacket;)V",
+        method = "handleSetEntityPassengersPacket(Lnet/minecraft/network/protocol/game/ClientboundSetPassengersPacket;)V",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/util/thread/BlockableEventLoop;)V",
+            target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/network/PacketProcessor;)V",
             shift = At.Shift.AFTER
         ),
         cancellable = true
@@ -160,7 +161,7 @@ public abstract class MixinClientPacketListener implements IEClientPlayNetworkHa
     
     // for debug
     @Redirect(
-        method = "Lnet/minecraft/client/multiplayer/ClientPacketListener;handleSetEntityData(Lnet/minecraft/network/protocol/game/ClientboundSetEntityDataPacket;)V",
+        method = "handleSetEntityData(Lnet/minecraft/network/protocol/game/ClientboundSetEntityDataPacket;)V",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/client/multiplayer/ClientLevel;getEntity(I)Lnet/minecraft/world/entity/Entity;"
@@ -184,9 +185,10 @@ public abstract class MixinClientPacketListener implements IEClientPlayNetworkHa
     private void onSetTime(ClientboundSetTimePacket packet, CallbackInfo ci) {
         if (ClientWorldLoader.getIsInitialized()) {
             ClientLevel currentWorld = Minecraft.getInstance().level;
+            ClientLevel.ClientLevelData data = currentWorld.getLevelData();
             for (ClientLevel clientWorld : ClientWorldLoader.getClientWorlds()) {
                 if (clientWorld != currentWorld) {
-                    clientWorld.setGameTime(packet.getGameTime());
+                    data.setGameTime(packet.gameTime());
                 }
             }
         }
@@ -220,7 +222,7 @@ public abstract class MixinClientPacketListener implements IEClientPlayNetworkHa
         method = "handleAddEntity",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/util/thread/BlockableEventLoop;)V",
+            target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/network/PacketProcessor;)V",
             shift = At.Shift.AFTER
         ),
         cancellable = true
@@ -270,7 +272,7 @@ public abstract class MixinClientPacketListener implements IEClientPlayNetworkHa
         method = "handleLevelChunkWithLight",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/util/thread/BlockableEventLoop;)V",
+            target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/network/PacketProcessor;)V",
             shift = At.Shift.AFTER
         )
     )
@@ -278,7 +280,7 @@ public abstract class MixinClientPacketListener implements IEClientPlayNetworkHa
         ClientboundLevelChunkWithLightPacket packet, CallbackInfo ci
     ) {
         if (IPGlobal.chunkPacketDebug) {
-            LOGGER.info("Chunk Load Packet {} {} {}", level.dimension().location(), packet.getX(), packet.getZ());
+            LOGGER.info("Chunk Load Packet {} {} {}", level.dimension().identifier(), packet.getX(), packet.getZ());
         }
     }
     
@@ -287,7 +289,7 @@ public abstract class MixinClientPacketListener implements IEClientPlayNetworkHa
         method = "handleForgetLevelChunk",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/util/thread/BlockableEventLoop;)V",
+            target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/network/PacketProcessor;)V",
             shift = At.Shift.AFTER
         )
     )
@@ -297,7 +299,7 @@ public abstract class MixinClientPacketListener implements IEClientPlayNetworkHa
         if (IPGlobal.chunkPacketDebug) {
             LOGGER.info(
                 "Chunk Unload Packet {} {} {}",
-                level.dimension().location(), packet.pos().x, packet.pos().z
+                level.dimension().identifier(), packet.pos().x, packet.pos().z
             );
         }
     }

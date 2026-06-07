@@ -66,7 +66,7 @@ public abstract class MixinClientLevel implements IEClientWorld {
     
     @Shadow
     @Final
-    private EntityTickList tickingEntities;
+    EntityTickList tickingEntities;
     
     @Shadow
     protected abstract Map<String, MapItemSavedData> getAllMapData();
@@ -99,13 +99,11 @@ public abstract class MixinClientLevel implements IEClientWorld {
         at = @At("RETURN")
     )
     void onConstructed(
-        ClientPacketListener clientPacketListener, ClientLevel.ClientLevelData clientLevelData,
-        ResourceKey resourceKey, Holder holder, int loadDistance, int j, Supplier supplier,
-        LevelRenderer levelRenderer, boolean bl, long l, CallbackInfo ci
+            ClientPacketListener clientPacketListener, ClientLevel.ClientLevelData clientLevelData, ResourceKey resourceKey, Holder holder, int i, int j, LevelRenderer levelRenderer, boolean bl, long l, int k, CallbackInfo ci
     ) {
         ClientLevel clientWorld = (ClientLevel) (Object) this;
         ClientChunkCache myClientChunkManager =
-            O_O.createMyClientChunkManager(clientWorld, loadDistance);
+            O_O.createMyClientChunkManager(clientWorld, i);
         chunkSource = myClientChunkManager;
     }
     
@@ -130,7 +128,7 @@ public abstract class MixinClientLevel implements IEClientWorld {
      * {@link net.minecraft.client.player.LocalPlayer#tick()}
      */
     @Inject(
-        method = "Lnet/minecraft/client/multiplayer/ClientLevel;hasChunk(II)Z",
+        method = "hasChunk(II)Z",
         at = @At("HEAD"),
         cancellable = true
     )
@@ -147,7 +145,7 @@ public abstract class MixinClientLevel implements IEClientWorld {
     @Inject(method = "Lnet/minecraft/client/multiplayer/ClientLevel;toString()Ljava/lang/String;", at = @At("HEAD"), cancellable = true)
     private void onToString(CallbackInfoReturnable<String> cir) {
         ClientLevel this_ = (ClientLevel) (Object) this;
-        cir.setReturnValue("ClientWorld " + this_.dimension().location());
+        cir.setReturnValue("ClientWorld " + this_.dimension().identifier());
     }
     
     @Inject(

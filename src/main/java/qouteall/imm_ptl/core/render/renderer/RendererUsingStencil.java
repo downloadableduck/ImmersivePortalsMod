@@ -1,6 +1,6 @@
 package qouteall.imm_ptl.core.render.renderer;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
@@ -36,9 +36,9 @@ public class RendererUsingStencil extends PortalRenderer {
         boolean skipClearing = WorldRenderInfo.isRendering();
         if (skipClearing) {
             if (WorldRenderInfo.getTopRenderInfo().doRenderSky) {
-                RenderSystem.depthMask(false);
+                //RenderSystem.depthMask(false);
                 MyRenderHelper.renderScreenTriangle(FogRendererContext.getCurrentFogColor.get());
-                RenderSystem.depthMask(true);
+               //RenderSystem.depthMask(true);
             }
         }
         return skipClearing;
@@ -54,8 +54,8 @@ public class RendererUsingStencil extends PortalRenderer {
         // use GlStateManager.disableDepthTest() instead
         // because GlStateManager will cache its state.
         // Do not make its cache not synchronized
-        RenderSystem.enableDepthTest();
-        RenderSystem.depthMask(true);
+        GlStateManager._enableDepthTest();
+        GlStateManager._depthMask(true);
         
         client.getProfiler().popPush("render_portal_total");
         renderPortals(modelView);
@@ -194,7 +194,7 @@ public class RendererUsingStencil extends PortalRenderer {
         ViewAreaRenderer.renderPortalArea(
             portal, Vec3.ZERO,
             modelView,
-            RenderSystem.getProjectionMatrix(),
+            RenderSystem.getModelViewMatrix(),
             true, true,
             true, true
         );
@@ -241,7 +241,7 @@ public class RendererUsingStencil extends PortalRenderer {
         ViewAreaRenderer.renderPortalArea(
             portal, Vec3.ZERO,
             modelView,
-            RenderSystem.getProjectionMatrix(),
+            RenderSystem.getModelViewMatrix(),
             false, false,
             true,
             true // important: should clip, otherwise depth will be abnormal when viewing scale box from inside in portal

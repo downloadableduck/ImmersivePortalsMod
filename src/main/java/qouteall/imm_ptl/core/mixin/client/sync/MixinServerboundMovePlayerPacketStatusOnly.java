@@ -14,7 +14,7 @@ import qouteall.imm_ptl.core.network.ImmPtlNetworkConfig;
 
 @Mixin(ServerboundMovePlayerPacket.StatusOnly.class)
 public class MixinServerboundMovePlayerPacketStatusOnly {
-    @Inject(method = "Lnet/minecraft/network/protocol/game/ServerboundMovePlayerPacket$StatusOnly;write(Lnet/minecraft/network/FriendlyByteBuf;)V", at = @At("RETURN"))
+    @Inject(method = "write(Lnet/minecraft/network/FriendlyByteBuf;)V", at = @At("RETURN"))
     private void onWrite(FriendlyByteBuf buf, CallbackInfo ci) {
         if (!ImmPtlNetworkConfig.doesServerHaveImmPtl()) {
             return;

@@ -430,7 +430,7 @@ public class ClientTeleportationManager {
     }
     
     public static void forceTeleportPlayer(ResourceKey<Level> toDimension, Vec3 destination) {
-        LOGGER.info("client player force teleported {} {}", toDimension.location(), destination);
+        LOGGER.info("client player force teleported {} {}", toDimension.identifier(), destination);
         
         ClientLevel fromWorld = client.level;
         assert fromWorld != null;
@@ -496,7 +496,7 @@ public class ClientTeleportationManager {
             ((IEParticleManager) client.particleEngine).ip_setWorld(toWorld);
         }
         
-        client.getBlockEntityRenderDispatcher().setLevel(toWorld);
+        client.level = toWorld;
         
         if (vehicle != null) {
             Vec3 offset = McHelper.getVehicleOffsetFromPassenger(vehicle, player);
@@ -510,13 +510,13 @@ public class ClientTeleportationManager {
                 player.position().add(offset),
                 McHelper.lastTickPosOf(player).add(offset)
             );
-            player.startRiding(vehicle, true);
+            player.startRiding(vehicle);
         }
         
         Helper.log(String.format(
             "Client Changed Dimension from %s to %s time: %s age: %s",
-            fromDimension.location(),
-            toDimension.location(),
+            fromDimension.identifier(),
+            toDimension.identifier(),
             tickTimeForTeleportation,
             player.tickCount
         ));
@@ -634,7 +634,7 @@ public class ClientTeleportationManager {
             return;
         }
         
-        Vec3 levitationVec = Vec3.atLowerCornerOf(levitationDir.getNormal());
+        Vec3 levitationVec = Vec3.atLowerCornerOf(levitationDir.getUnitVec3i());
         
         Vec3 offset = levitationVec.scale(delta);
         
@@ -710,10 +710,9 @@ public class ClientTeleportationManager {
             
             // both of them are important for Minecart
             entity.setPos(pos);
-            entity.lerpTo(
+            entity.snapTo(
                 pos.x, pos.y, pos.z,
-                entity.getYRot(), entity.getXRot(),
-                0
+                entity.getYRot(), entity.getXRot()
             );
             entity.setPos(pos);
         }

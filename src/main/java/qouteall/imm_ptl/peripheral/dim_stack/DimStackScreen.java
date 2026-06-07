@@ -22,7 +22,7 @@ public class DimStackScreen extends Screen {
     
     private final DimStackGuiController controller;
     
-    @org.jetbrains.annotations.Nullable
+    @Nullable
     public final Screen parent;
     private final Button finishButton;
     private final Button toggleButton;

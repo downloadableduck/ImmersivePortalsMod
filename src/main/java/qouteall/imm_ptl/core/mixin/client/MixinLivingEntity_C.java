@@ -1,5 +1,6 @@
 package qouteall.imm_ptl.core.mixin.client;
 
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
@@ -12,35 +13,27 @@ import qouteall.imm_ptl.core.McHelper;
 import qouteall.imm_ptl.core.ducks.IEEntity;
 import qouteall.imm_ptl.core.portal.Portal;
 
-@Mixin(LivingEntity.class)
+@Mixin(Entity.class)
 public class MixinLivingEntity_C {
+
     @Shadow
-    protected double lerpX;
-    
+    public double xo;
+
     @Shadow
-    protected double lerpY;
-    
+    public double yo;
+
     @Shadow
-    protected double lerpZ;
-    
-    @Shadow
-    protected int lerpSteps;
-    
+    public double zo;
+
     // avoid entity position interpolate when crossing portal to the same dimension
     @Inject(
-        method = "lerpTo",
+        method = "absSnapTo(DDDFF)V",
         at = @At("RETURN")
     )
     private void onUpdateTrackedPositionAndAngles(
-        double x,
-        double y,
-        double z,
-        float yaw,
-        float pitch,
-        int interpolationSteps,
-        CallbackInfo ci
+            double x, double y, double z, float yaw, float pitch, CallbackInfo ci
     ) {
-        LivingEntity this_ = ((LivingEntity) (Object) this);
+        Entity this_ = ((Entity) (Object) this);
         if (!IPGlobal.allowClientEntityPosInterpolation) {
             this_.setPos(x, y, z);
             return;
@@ -48,12 +41,12 @@ public class MixinLivingEntity_C {
         
         Portal collidingPortal = ((IEEntity) this).ip_getCollidingPortal();
         if (collidingPortal != null) {
-            
-            double dx = this_.getX() - lerpX;
-            double dy = this_.getY() - lerpY;
-            double dz = this_.getZ() - lerpZ;
+
+            double dx = this_.getX() - this.xo;
+            double dy = this_.getY() - this.yo;
+            double dz = this_.getZ() - this.zo;
             if (dx * dx + dy * dy + dz * dz > 4) {
-                Vec3 currPos = new Vec3(lerpX, lerpY, lerpZ);
+                Vec3 currPos = new Vec3(this.xo, this.yo, this.zo);
                 McHelper.setPosAndLastTickPos(
                     this_,
                     currPos,

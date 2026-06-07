@@ -2,7 +2,10 @@ package qouteall.imm_ptl.core.portal;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import qouteall.imm_ptl.core.ducks.IEWorld;
@@ -81,39 +84,39 @@ public class PortalExtension {
     
     private void readFromNbt(CompoundTag compoundTag) {
         if (compoundTag.contains("motionAffinity")) {
-            motionAffinity = compoundTag.getDouble("motionAffinity");
+            motionAffinity = compoundTag.getDouble("motionAffinity").get();
         }
         else {
             motionAffinity = 0;
         }
         if (compoundTag.contains("adjustPositionAfterTeleport")) {
-            adjustPositionAfterTeleport = compoundTag.getBoolean("adjustPositionAfterTeleport");
+            adjustPositionAfterTeleport = compoundTag.getBoolean("adjustPositionAfterTeleport").get();
         }
         else {
             adjustPositionAfterTeleport = true;
         }
         
         if (compoundTag.contains("bindCluster")) {
-            bindCluster = compoundTag.getBoolean("bindCluster");
+            bindCluster = compoundTag.getBoolean("bindCluster").get();
         }
         else {
             bindCluster = true;
         }
         
-        if (compoundTag.hasUUID("reversePortalId")) {
-            reversePortalId = compoundTag.getUUID("reversePortalId");
+        if (compoundTag.contains("reversePortalId")) {
+            reversePortalId = UUID.fromString("reversePortalId");
         }
         else {
             reversePortalId = null;
         }
-        if (compoundTag.hasUUID("flippedPortalId")) {
-            flippedPortalId = compoundTag.getUUID("flippedPortalId");
+        if (compoundTag.contains("flippedPortalId")) {
+            flippedPortalId = UUID.fromString("flippedPortalId");
         }
         else {
             flippedPortalId = null;
         }
-        if (compoundTag.hasUUID("parallelPortalId")) {
-            parallelPortalId = compoundTag.getUUID("parallelPortalId");
+        if (compoundTag.contains("paralUlelPortalId")) {
+            parallelPortalId = UUID.fromString("parallelPortalId");
         }
         else {
             parallelPortalId = null;
@@ -127,13 +130,13 @@ public class PortalExtension {
         compoundTag.putBoolean("adjustPositionAfterTeleport", adjustPositionAfterTeleport);
         compoundTag.putBoolean("bindCluster", bindCluster);
         if (reversePortalId != null) {
-            compoundTag.putUUID("reversePortalId", reversePortalId);
+            reversePortalId = UUID.fromString("reversePortalId");
         }
         if (flippedPortalId != null) {
-            compoundTag.putUUID("flippedPortalId", flippedPortalId);
+            flippedPortalId = UUID.fromString("flippedPortalId");
         }
         if (parallelPortalId != null) {
-            compoundTag.putUUID("parallelPortalId", parallelPortalId);
+            parallelPortalId = UUID.fromString("parallelPortalId");
         }
     }
     

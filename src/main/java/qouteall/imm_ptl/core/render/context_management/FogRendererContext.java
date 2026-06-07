@@ -1,10 +1,13 @@
 package qouteall.imm_ptl.core.render.context_management;
 
 import net.minecraft.client.Camera;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.FogRenderer;
+import net.minecraft.client.renderer.fog.FogRenderer;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.profiling.Profiler;
+import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import qouteall.imm_ptl.core.ClientWorldLoader;
@@ -66,8 +69,12 @@ public class FogRendererContext {
         ClientLevel destWorld, Vec3 pos
     ) {
         Minecraft client = Minecraft.getInstance();
+
+        DeltaTracker deltaTracker = Minecraft.getInstance().getDeltaTracker();
+
+        ProfilerFiller profiler = Profiler.get();
         
-        client.getProfiler().push("get_fog_color");
+        profiler.push("get_fog_color");
         
         ClientLevel oldWorld = client.level;
         
@@ -85,15 +92,15 @@ public class FogRendererContext {
         
         Camera newCamera = new Camera();
         ((IECamera) newCamera).portal_setPos(pos);
-        ((IECamera) newCamera).portal_setFocusedEntity(client.cameraEntity);
+        ((IECamera) newCamera).portal_setFocusedEntity(client.getCameraEntity());
         
         try {
-            FogRenderer.setupColor(
+            new FogRenderer().setupFog(
                 newCamera,
-                RenderStates.getPartialTick(),
-                destWorld,
+                    (int) RenderStates.getPartialTick(),
+                    deltaTracker,
                 client.options.getEffectiveRenderDistance(),
-                client.gameRenderer.getDarkenWorldAmount(RenderStates.getPartialTick())
+                destWorld
             );
             
             Vec3 result = getCurrentFogColor.get();
@@ -104,7 +111,7 @@ public class FogRendererContext {
             swappingManager.popSwapping();
             client.level = oldWorld;
             
-            client.getProfiler().pop();
+            profiler.pop();
         }
     }
     

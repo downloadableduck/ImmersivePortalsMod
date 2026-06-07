@@ -21,7 +21,7 @@ public class NormalAnimation implements PortalAnimationDriver {
     
     public static void init() {
         PortalAnimationDriver.registerDeserializer(
-            McHelper.newResourceLocation("imm_ptl:normal"),
+            McHelper.newIdentifier("imm_ptl:normal"),
             NormalAnimation::deserialize
         );
     }
@@ -32,9 +32,9 @@ public class NormalAnimation implements PortalAnimationDriver {
         TimingFunction timingFunction
     ) {
         public static Phase fromTag(CompoundTag tag) {
-            long durationTicks = tag.getLong("durationTicks");
-            DeltaUnilateralPortalState delta = DeltaUnilateralPortalState.fromTag(tag.getCompound("delta"));
-            TimingFunction timingFunction = TimingFunction.fromString(tag.getString("timingFunction"));
+            long durationTicks = tag.getLong("durationTicks").get();
+            DeltaUnilateralPortalState delta = DeltaUnilateralPortalState.fromTag(tag.getCompound("delta").get());
+            TimingFunction timingFunction = TimingFunction.fromString(tag.getString("timingFunction").get());
             return new Phase(durationTicks, delta, timingFunction);
         }
         
@@ -113,18 +113,18 @@ public class NormalAnimation implements PortalAnimationDriver {
     }
     
     private static NormalAnimation deserialize(CompoundTag compoundTag) {
-        UnilateralPortalState initialState = UnilateralPortalState.fromTag(compoundTag.getCompound("initialState"));
+        UnilateralPortalState initialState = UnilateralPortalState.fromTag(compoundTag.getCompound("initialState").get());
         
         List<Phase> phases = Helper.listTagToList(
             Helper.getCompoundList(compoundTag, "phases"),
             Phase::fromTag
         );
         
-        long startingGameTime = compoundTag.getLong("startingGameTime");
+        long startingGameTime = compoundTag.getLong("startingGameTime").get();
         
-        int loopCount = compoundTag.getInt("loopCount");
+        int loopCount = compoundTag.getInt("loopCount").get();
         
-        boolean isBuilding = compoundTag.getBoolean("isBuilding");
+        boolean isBuilding = compoundTag.getBoolean("isBuilding").get();
         
         if (!isBuilding) {
             if (phases.isEmpty() || loopCount < 0) {

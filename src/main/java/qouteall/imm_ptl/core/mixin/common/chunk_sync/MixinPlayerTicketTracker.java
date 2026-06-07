@@ -10,9 +10,9 @@ import qouteall.imm_ptl.core.platform_specific.IPConfig;
 public class MixinPlayerTicketTracker {
     @Inject(
         method = {
-            "Lnet/minecraft/server/level/DistanceManager$PlayerTicketTracker;onLevelChange(JII)V",
+            "onLevelChange(JII)V",
             "updateViewDistance",
-            "Lnet/minecraft/server/level/DistanceManager$PlayerTicketTracker;onLevelChange(JIZZ)V",
+            "onLevelChange(JIZZ)V",
             "runAllUpdates"
         },
         at = @At("HEAD"),

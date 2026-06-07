@@ -11,19 +11,27 @@ import net.minecraft.commands.Commands;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.Permission;
+import net.minecraft.server.permissions.PermissionLevel;
+import net.minecraft.server.permissions.PermissionSet;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -33,6 +41,7 @@ import qouteall.imm_ptl.core.commands.PortalCommand;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class CommandStickItem extends Item {
@@ -73,14 +82,13 @@ public class CommandStickItem extends Item {
         
         public static Data deserialize(CompoundTag tag) {
             return new Data(
-                tag.getString("command"),
-                tag.getString("nameTranslationKey"),
+                tag.getString("command").get(),
+                tag.getString("nameTranslationKey").get(),
                 tag.getList(
-                        "descriptionTranslationKeys",
-                        StringTag.valueOf("").getId()
-                    )
+                        "descriptionTranslationKeys"
+                        )
                     .stream()
-                    .map(tag1 -> ((StringTag) tag1).getAsString())
+                    .map(tag1 -> (tag1).toString())
                     .collect(Collectors.toList())
             );
         }
@@ -93,7 +101,7 @@ public class CommandStickItem extends Item {
     }
     
     public static final CommandStickItem instance = new CommandStickItem(
-        new Item.Properties()
+        new Properties().setId(ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("immersive_portals", "command_stick")))
     );
     
     public CommandStickItem(Properties settings) {
@@ -107,7 +115,7 @@ public class CommandStickItem extends Item {
     }
     
     @Override
-    public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
+    public InteractionResult use(Level world, Player player, InteractionHand hand) {
         doUse(player, player.getItemInHand(hand));
         return super.use(world, player, hand);
     }
@@ -125,11 +133,9 @@ public class CommandStickItem extends Item {
                 return;
             }
             
-            CommandSourceStack commandSource = player.createCommandSourceStack().withPermission(2);
+            CommandSourceStack commandSource = player.createCommandSourceStackForNameResolution((ServerLevel) player.level()).withPermission(PermissionSet.ALL_PERMISSIONS);
             
-            MinecraftServer server = player.getServer();
-            assert server != null;
-            Commands commandManager = server.getCommands();
+            Commands commandManager = player.level().getServer().getCommands();
             
             String command = data.command;
             
@@ -150,16 +156,16 @@ public class CommandStickItem extends Item {
             return true;// any player regardless of gamemode can use
         }
         else {
-            return player.hasPermissions(2) || player.isCreative();
+            return player.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.ALL)) || player.isCreative();
         }
     }
     
     @Override
     public void appendHoverText(
-        ItemStack stack, Item.TooltipContext tooltipContext,
-        List<Component> tooltip, TooltipFlag tooltipFlag
+            ItemStack stack, TooltipContext tooltipContext,
+            TooltipDisplay tooltip, Consumer<Component> consumer, TooltipFlag tooltipFlag
     ) {
-        super.appendHoverText(stack, tooltipContext, tooltip, tooltipFlag);
+        super.appendHoverText(stack, tooltipContext, tooltip, consumer, tooltipFlag);
         
         Data data = stack.get(COMPONENT_TYPE);
         
@@ -170,18 +176,18 @@ public class CommandStickItem extends Item {
         Iterable<String> splitCommand = Splitter.fixedLength(40).split(data.command);
         
         for (String commandPortion : splitCommand) {
-            tooltip.add(Component.literal(commandPortion).withStyle(ChatFormatting.GOLD));
+            //tooltip.add(Component.literal(commandPortion).withStyle(ChatFormatting.GOLD));
         }
         
         for (String descriptionTranslationKey : data.descriptionTranslationKeys) {
-            tooltip.add(Component.translatable(descriptionTranslationKey).withStyle(ChatFormatting.AQUA));
+            //tooltip.add(Component.translatable(descriptionTranslationKey).withStyle(ChatFormatting.AQUA));
         }
         
-        tooltip.add(Component.translatable("imm_ptl.command_stick").withStyle(ChatFormatting.GRAY));
+        //tooltip.add(Component.translatable("imm_ptl.command_stick").withStyle(ChatFormatting.GRAY));
     }
     
-    @Override
-    public @NotNull String getDescriptionId(ItemStack stack) {
+    /*@Override
+    public @NotNull String getDescriptionId() {
         Data data = stack.get(COMPONENT_TYPE);
         
         if (data == null) {
@@ -189,7 +195,7 @@ public class CommandStickItem extends Item {
         }
         
         return data.nameTranslationKey;
-    }
+    }*/
     
     public static void sendMessage(Player player, Component message) {
         ((ServerPlayer) player).sendSystemMessage(message);

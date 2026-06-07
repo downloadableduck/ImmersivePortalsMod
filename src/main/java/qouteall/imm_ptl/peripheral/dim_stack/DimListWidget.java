@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractSelectionList;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import org.jetbrains.annotations.Nullable;
 import qouteall.q_misc_util.Helper;
 
@@ -42,12 +43,12 @@ public class DimListWidget extends AbstractSelectionList<DimEntryWidget> {
     }
     
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+    public boolean mouseDragged(MouseButtonEvent event, double x, double y) {
         if (type == Type.mainDimensionList && draggingCallback != null) {
             DimEntryWidget selected = getSelected();
         
             if (selected != null) {
-                DimEntryWidget mouseOn = getEntryAtPosition(mouseX, mouseY);
+                DimEntryWidget mouseOn = getEntryAtPosition(x, y);
                 if (mouseOn != null) {
                     if (mouseOn != selected) {
                         int selectedIndex = children().indexOf(selected);
@@ -63,7 +64,7 @@ public class DimListWidget extends AbstractSelectionList<DimEntryWidget> {
             }
         }
         
-        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+        return super.mouseDragged(event, x, y);
     }
     
     @Override
@@ -76,8 +77,7 @@ public class DimListWidget extends AbstractSelectionList<DimEntryWidget> {
     public int getRowWidth() {
         return ROW_WIDTH;
     }
-    
-    @Override
+
     protected int getScrollbarPosition() {
         return (width - ROW_WIDTH) / 2 + ROW_WIDTH;
     }

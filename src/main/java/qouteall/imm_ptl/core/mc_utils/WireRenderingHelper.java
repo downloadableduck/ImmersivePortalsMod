@@ -61,7 +61,7 @@ public class WireRenderingHelper {
         float green = ((color >> 8) & 0xff) / 255f;
         float blue = (color & 0xff) / 255f;
         
-        LevelRenderer.renderLineBox(
+        /*LevelRenderer.renderLineBox(
             matrixStack,
             vertexConsumer,
             -boxSize / 2,
@@ -71,7 +71,7 @@ public class WireRenderingHelper {
             boxSize / 2,
             boxSize / 2,
             red, green, blue, alpha
-        );
+        );*/
         matrixStack.popPose();
     }
     

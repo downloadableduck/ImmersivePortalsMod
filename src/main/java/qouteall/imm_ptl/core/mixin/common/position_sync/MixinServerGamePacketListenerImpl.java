@@ -1,5 +1,6 @@
 package qouteall.imm_ptl.core.mixin.common.position_sync;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
 import net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket;
@@ -10,7 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.RelativeMovement;
+import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.phys.AABB;
@@ -117,7 +118,7 @@ public abstract class MixinServerGamePacketListenerImpl implements IEServerPlayN
     
     //do not process move packet when client dimension and server dimension are not synced
     @Inject(
-        method = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;handleMovePlayer(Lnet/minecraft/network/protocol/game/ServerboundMovePlayerPacket;)V",
+        method = "handleMovePlayer(Lnet/minecraft/network/protocol/game/ServerboundMovePlayerPacket;)V",
         at = @At(
             value = "INVOKE",
             shift = At.Shift.AFTER,
@@ -145,7 +146,7 @@ public abstract class MixinServerGamePacketListenerImpl implements IEServerPlayN
             if (LOG_LIMIT.tryDecrement()) {
                 LOGGER.info(
                     "[ImmPtl] Ignoring player move packet. Player: {} Packet: {} {} {} {}",
-                    player, packetDimension.location(),
+                    player, packetDimension.identifier(),
                     packet.getX(player.getX()),
                     packet.getY(player.getY()),
                     packet.getZ(player.getZ())
@@ -157,7 +158,7 @@ public abstract class MixinServerGamePacketListenerImpl implements IEServerPlayN
             if (ip_wrongMovePacketCount > 10) {
                 LOGGER.info(
                     "[ImmPtl] Force move player {} {} {}",
-                    player, player.level().dimension().location(), player.position()
+                    player, player.level().dimension().identifier(), player.position()
                 );
                 ServerTeleportationManager.of(player.server).forceTeleportPlayer(
                     player, player.level().dimension(), player.position()
@@ -179,8 +180,7 @@ public abstract class MixinServerGamePacketListenerImpl implements IEServerPlayN
     @Overwrite
     @IPVanillaCopy
     public void teleport(
-        double x, double y, double z, float yaw, float pitch,
-        Set<RelativeMovement> relativeAttrs
+        double x, double y, double z, float yaw, float pitch
     ) {
         // it may request teleport while this.player is marked removed during respawn
         
@@ -195,15 +195,21 @@ public abstract class MixinServerGamePacketListenerImpl implements IEServerPlayN
         if (IPConfig.getConfig().serverTeleportLogging) {
             LOGGER.info(
                 "Teleporting player {} to {} {} {} {}",
-                player, player.level().dimension().location(), x, y, z
+                player, player.level().dimension().identifier(), x, y, z
             );
         }
-        
-        double xBase = relativeAttrs.contains(RelativeMovement.X) ? this.player.getX() : 0.0;
-        double yBase = relativeAttrs.contains(RelativeMovement.Y) ? this.player.getY() : 0.0;
-        double zBase = relativeAttrs.contains(RelativeMovement.Z) ? this.player.getZ() : 0.0;
-        float yRotBase = relativeAttrs.contains(RelativeMovement.Y_ROT) ? this.player.getYRot() : 0.0f;
-        float xRotBase = relativeAttrs.contains(RelativeMovement.X_ROT) ? this.player.getXRot() : 0.0f;
+
+        /*double xBase = relativeAttrs.contains(Relative.X) ? this.player.getX() : 0.0;
+        double yBase = relativeAttrs.contains(Relative.Y) ? this.player.getY() : 0.0;
+        double zBase = relativeAttrs.contains(Relative.Z) ? this.player.getZ() : 0.0;
+        float yRotBase = relativeAttrs.contains(Relative.Y_ROT) ? this.player.getYRot() : 0.0f;
+        float xRotBase = relativeAttrs.contains(Relative.X_ROT) ? this.player.getXRot() : 0.0f;*/
+
+        double xBase =  this.player.getX();
+        double yBase =  this.player.getY();
+        double zBase =  this.player.getZ();
+        float yRotBase = this.player.getYRot();
+        float xRotBase = this.player.getXRot();
         
         this.awaitingPositionFromClient = new Vec3(x, y, z);
         this.ip_dimOfAwaitingPosition = player.level().dimension();
@@ -212,11 +218,9 @@ public abstract class MixinServerGamePacketListenerImpl implements IEServerPlayN
         }
         
         this.awaitingTeleportTime = this.tickCount;
-        this.player.absMoveTo(x, y, z, yaw, pitch);
+        this.player.absSnapTo(x, y, z, yaw, pitch);
         ClientboundPlayerPositionPacket lookPacket = new ClientboundPlayerPositionPacket(
-            x - xBase, y - yBase, z - zBase,
-            yaw - yRotBase, pitch - xRotBase,
-            relativeAttrs, this.awaitingTeleport
+                (int) ((int) x - xBase), PositionMoveRotation.of(player), Set.of()
         );
         
         ((IEPlayerPositionLookS2CPacket) lookPacket).ip_setPlayerDimension(player.level().dimension());
@@ -225,10 +229,10 @@ public abstract class MixinServerGamePacketListenerImpl implements IEServerPlayN
     }
     
     @Inject(
-        method = "isPlayerCollidingWithAnythingNew", at = @At("HEAD"), cancellable = true
+        method = "isEntityCollidingWithAnythingNew", at = @At("HEAD"), cancellable = true
     )
     private void onIsPlayerCollidingWithAnythingNew(
-        LevelReader level, AABB playerBB, double newX, double newY, double newZ, CallbackInfoReturnable<Boolean> cir
+            LevelReader levelReader, Entity entity, AABB aABB, double newX, double newY, double newZ, CallbackInfoReturnable<Boolean> cir
     ) {
         if (!IPGlobal.crossPortalCollision) {
             return;
@@ -236,7 +240,7 @@ public abstract class MixinServerGamePacketListenerImpl implements IEServerPlayN
         
         // for this to work, the player's portal collision status must be updated after teleporting
         
-        AABB activePlayerBB = ((IEEntity) player).ip_getActiveCollisionBox(playerBB);
+        AABB activePlayerBB = ((IEEntity) player).ip_getActiveCollisionBox(aABB);
         
         if (activePlayerBB == null) {
             cir.setReturnValue(false);
@@ -255,7 +259,7 @@ public abstract class MixinServerGamePacketListenerImpl implements IEServerPlayN
         }
         
         Iterable<VoxelShape> newBBCollisions =
-            level.getCollisions(this.player, activeNewBB.deflate(1.0E-5F));
+                Minecraft.getInstance().level.getCollisions(this.player, activeNewBB.deflate(1.0E-5F));
         
         VoxelShape activePlayerBBShape = Shapes.create(activePlayerBB.deflate(1.0E-5F));
         
@@ -285,7 +289,7 @@ public abstract class MixinServerGamePacketListenerImpl implements IEServerPlayN
         method = "handleAcceptTeleportPacket",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/server/level/ServerPlayer;absMoveTo(DDDFF)V"
+            target = "Lnet/minecraft/server/level/ServerPlayer;absSnapTo(DDDFF)V"
         )
     )
     private void onHandleAcceptTeleportPacket(
@@ -307,7 +311,7 @@ public abstract class MixinServerGamePacketListenerImpl implements IEServerPlayN
             if (destWorld == null) {
                 LOGGER.error(
                     "[ImmPtl] Cannot find destination world {}",
-                    ip_dimOfAwaitingPosition.location()
+                    ip_dimOfAwaitingPosition.identifier()
                 );
                 return;
             }

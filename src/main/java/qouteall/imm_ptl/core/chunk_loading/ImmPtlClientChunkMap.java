@@ -16,6 +16,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.level.levelgen.Heightmap;
 import org.apache.commons.lang3.Validate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,6 +31,7 @@ import qouteall.q_misc_util.my_util.SignalArged;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -138,9 +140,8 @@ public class ImmPtlClientChunkMap extends ClientChunkCache {
     
     @Override
     public LevelChunk replaceWithPacketData(
-        int x, int z,
-        FriendlyByteBuf buf, CompoundTag nbt,
-        Consumer<ClientboundLevelChunkPacketData.BlockEntityTagOutput> consumer
+            int x, int z,
+            FriendlyByteBuf buf, Map<Heightmap.Types, long[]> map, Consumer<ClientboundLevelChunkPacketData.BlockEntityTagOutput> consumer
     ) {
         Validate.isTrue(Thread.currentThread() == mainThread);
         
@@ -148,7 +149,7 @@ public class ImmPtlClientChunkMap extends ClientChunkCache {
         LevelChunk worldChunk = chunkMapForMainThread.get(chunkPosLong);
         if (worldChunk == null) {
             worldChunk = new LevelChunk(this.level, new ChunkPos(x, z));
-            loadChunkDataFromPacket(buf, nbt, worldChunk, consumer);
+            loadChunkDataFromPacket(buf, map, worldChunk, consumer);
             
             LevelChunk worldChunkToPut = worldChunk; // lambda can only capture effectively final variables
             modifyChunkMap(chunkMap -> {
@@ -156,14 +157,14 @@ public class ImmPtlClientChunkMap extends ClientChunkCache {
             });
         }
         else {
-            loadChunkDataFromPacket(buf, nbt, worldChunk, consumer);
+            loadChunkDataFromPacket(buf, map, worldChunk, consumer);
         }
         
         this.level.onChunkLoaded(new ChunkPos(x, z));
         O_O.postClientChunkLoadEvent(worldChunk);
         SodiumInterface.invoker.onClientChunkLoaded(level, x, z);
         clientChunkLoadSignal.emit(worldChunk);
-        
+
 //        LOGGER.info("load {} {} {}", level, x, z);
         
         return worldChunk;
@@ -175,7 +176,7 @@ public class ImmPtlClientChunkMap extends ClientChunkCache {
      */
     private void loadChunkDataFromPacket(
         FriendlyByteBuf buf,
-        CompoundTag nbt,
+        Map<Heightmap.Types, long[]> nbt,
         LevelChunk worldChunk,
         Consumer<ClientboundLevelChunkPacketData.BlockEntityTagOutput> consumer
     ) {
@@ -185,14 +186,14 @@ public class ImmPtlClientChunkMap extends ClientChunkCache {
         catch (Exception e) {
             LOGGER.error(
                 "Error deserializing chunk packet {} {}",
-                worldChunk.getLevel().dimension().location(),
+                worldChunk.getLevel().dimension().identifier(),
                 worldChunk.getPos(),
                 e
             );
             CHelper.printChat(
                 Component
                     .literal("Failed to deserialize chunk packet. %s %s %s".formatted(
-                        worldChunk.getLevel().dimension().location(),
+                        worldChunk.getLevel().dimension().identifier(),
                         worldChunk.getPos().x, worldChunk.getPos().z
                     ))
                     .append(Component.literal(" Report issue:"))

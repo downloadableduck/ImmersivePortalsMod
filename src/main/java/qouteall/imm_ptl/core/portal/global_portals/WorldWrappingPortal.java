@@ -6,8 +6,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Tuple;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import qouteall.imm_ptl.core.McHelper;
@@ -33,23 +36,23 @@ public class WorldWrappingPortal extends GlobalTrackedPortal {
     }
     
     @Override
-    protected void readAdditionalSaveData(CompoundTag compoundTag) {
-        super.readAdditionalSaveData(compoundTag);
+    protected void readAdditionalSaveData(ValueInput valueInput) {
+        super.readAdditionalSaveData(valueInput);
         
-        if (compoundTag.contains("isInward")) {
-            isInward = compoundTag.getBoolean("isInward");
+        if (valueInput.contains("isInward")) {
+            isInward = valueInput.getBooleanOr("isInward", false);
         }
-        if (compoundTag.contains("zoneId")) {
-            zoneId = compoundTag.getInt("zoneId");
+        if (valueInput.contains("zoneId")) {
+            zoneId = valueInput.getInt("zoneId").get();
         }
     }
     
     @Override
-    protected void addAdditionalSaveData(CompoundTag compoundTag) {
-        super.addAdditionalSaveData(compoundTag);
+    protected void addAdditionalSaveData(ValueOutput valueOutput) {
+        super.addAdditionalSaveData(valueOutput);
         
-        compoundTag.putBoolean("isInward", isInward);
-        compoundTag.putInt("zoneId", zoneId);
+        valueOutput.putBoolean("isInward", isInward);
+        valueOutput.putInt("zoneId", zoneId);
     }
     
     private static WorldWrappingPortal createWrappingPortal(
@@ -59,7 +62,7 @@ public class WorldWrappingPortal extends GlobalTrackedPortal {
         int zoneId,
         boolean isInward
     ) {
-        WorldWrappingPortal portal = WorldWrappingPortal.ENTITY_TYPE.create(serverWorld);
+        WorldWrappingPortal portal = WorldWrappingPortal.ENTITY_TYPE.create(serverWorld, EntitySpawnReason.BREEDING);
         portal.isInward = isInward;
         portal.zoneId = zoneId;
         
@@ -87,8 +90,8 @@ public class WorldWrappingPortal extends GlobalTrackedPortal {
         portal.setPos(center.x, center.y, center.z);
         portal.setDestination(destination);
         
-        portal.setAxisW(Vec3.atLowerCornerOf(axises.getA().getNormal()));
-        portal.setAxisH(Vec3.atLowerCornerOf(axises.getB().getNormal()));
+        portal.setAxisW(Vec3.atLowerCornerOf(axises.getA().getUnitVec3i()));
+        portal.setAxisH(Vec3.atLowerCornerOf(axises.getB().getUnitVec3i()));
         portal.setWidth(Helper.getCoordinate(areaSize, axises.getA().getAxis()));
         portal.setHeight(Helper.getCoordinate(areaSize, axises.getB().getAxis()));
         

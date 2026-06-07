@@ -12,6 +12,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.Permission;
+import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -119,7 +121,7 @@ public class DimStackManagement {
             newMap.put(world.dimension(), replacement);
             LOGGER.info(
                 "Bedrock Replacement {} {}",
-                world.dimension().location(),
+                world.dimension().identifier(),
                 replacement != null ?
                     BuiltInRegistries.BLOCK.getKey(replacement.getBlock()) : "null"
             );
@@ -143,14 +145,13 @@ public class DimStackManagement {
             BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
-                    for (int y = chunk.getMinBuildHeight(); y < chunk.getMaxBuildHeight(); y++) {
+                    for (int y = chunk.getMinY(); y < chunk.getMaxY(); y++) {
                         mutable.set(x, y, z);
                         BlockState blockState = chunk.getBlockState(mutable);
                         if (blockState.getBlock() == Blocks.BEDROCK) {
                             chunk.setBlockState(
                                 mutable,
-                                replacement,
-                                false
+                                replacement
                             );
                         }
                     }
@@ -179,7 +180,7 @@ public class DimStackManagement {
         ServerPlayer player
     ) {
         List<String> dimIdList = collectDimStackCandidateWhenServerRunning(player.server)
-            .stream().map(k -> k.location().toString()).toList();
+            .stream().map(k -> k.identifier().toString()).toList();
         
         McRemoteProcedureCall.tellClientToInvoke(
             player,
@@ -219,7 +220,7 @@ public class DimStackManagement {
         public static void serverSetupDimStack(
             ServerPlayer player, DimStackInfo dimStackInfo
         ) {
-            if (!player.hasPermissions(2)) {
+            if (!player.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.ALL))) {
                 player.sendSystemMessage(Component.literal(
                     "You don't have permission to change dimension stack"
                 ));
@@ -233,7 +234,7 @@ public class DimStackManagement {
                 return;
             }
             
-            MinecraftServer server = player.getServer();
+            MinecraftServer server = player.level().getServer();
             
             updateDimStack(server, dimStackInfo);
             
@@ -246,12 +247,12 @@ public class DimStackManagement {
         public static void serverRemoveDimStack(
             ServerPlayer player
         ) {
-            if (!player.hasPermissions(2)) {
+            /*if (!player.hasPermissions(2)) {
                 Helper.err("one player without permission tries to change dimension stack");
                 return;
-            }
+            }*/
             
-            MinecraftServer server = player.getServer();
+            MinecraftServer server = player.level().getServer();
             
             clearDimStackPortals(server);
             

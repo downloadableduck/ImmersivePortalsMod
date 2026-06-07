@@ -17,11 +17,13 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -45,9 +47,9 @@ public class ImmPtlNetworking {
     public static record TeleportPacket(
         int dimensionId, Vec3 eyePosBeforeTeleportation, UUID portalId
     ) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<TeleportPacket> TYPE =
-            new CustomPacketPayload.Type<>(
-                ResourceLocation.fromNamespaceAndPath("imm_ptl", "teleport")
+        public static final Type<TeleportPacket> TYPE =
+            new Type<>(
+                Identifier.fromNamespaceAndPath("imm_ptl", "teleport")
             );
         
         public static final StreamCodec<FriendlyByteBuf, TeleportPacket> CODEC = StreamCodec.of(
@@ -90,12 +92,12 @@ public class ImmPtlNetworking {
     }
     
     // server to client
-    public static record GlobalPortalSyncPacket(
+    public record GlobalPortalSyncPacket(
         int dimensionId, CompoundTag data
     ) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<GlobalPortalSyncPacket> TYPE =
-            new CustomPacketPayload.Type<>(
-                McHelper.newResourceLocation("imm_ptl:upd_glb_ptl")
+        public static final Type<GlobalPortalSyncPacket> TYPE =
+            new Type<>(
+                McHelper.newIdentifier("imm_ptl:upd_glb_ptl")
             );
         
         public static final StreamCodec<FriendlyByteBuf, GlobalPortalSyncPacket> CODEC = StreamCodec.of(
@@ -117,7 +119,7 @@ public class ImmPtlNetworking {
         public void handle() {
             ResourceKey<Level> dim = PortalAPI.clientIntToDimKey(dimensionId);
             
-            GlobalPortalStorage.receiveGlobalPortalSync(dim, data);
+            //GlobalPortalStorage.receiveGlobalPortalSync(dim, data);
         }
         
         @Override
@@ -141,9 +143,9 @@ public class ImmPtlNetworking {
         double z,
         CompoundTag extraData
     ) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<PortalSyncPacket> TYPE =
-            new CustomPacketPayload.Type<>(
-                McHelper.newResourceLocation("imm_ptl:spawn_portal")
+        public static final Type<PortalSyncPacket> TYPE =
+            new Type<>(
+                McHelper.newIdentifier("imm_ptl:spawn_portal")
             );
         
         public static final StreamCodec<RegistryFriendlyByteBuf, PortalSyncPacket> CODEC = StreamCodec.of(
@@ -203,7 +205,7 @@ public class ImmPtlNetworking {
             }
             else {
                 // spawn new portal
-                Entity entity = entityType.create(world);
+                Entity entity = entityType.create(world, EntitySpawnReason.BREEDING);
                 Validate.notNull(entity, "Entity type is null");
                 
                 if (!(entity instanceof Portal portal)) {
@@ -214,7 +216,7 @@ public class ImmPtlNetworking {
                 entity.setId(id);
                 entity.setUUID(uuid);
                 entity.syncPacketPositionCodec(x, y, z);
-                entity.moveTo(x, y, z);
+                entity.snapTo(x, y, z);
                 
                 portal.readPortalDataFromNbt(extraData);
                 

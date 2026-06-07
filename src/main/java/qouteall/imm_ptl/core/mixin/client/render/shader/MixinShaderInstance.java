@@ -1,8 +1,6 @@
 package qouteall.imm_ptl.core.mixin.client.render.shader;
 
-import com.mojang.blaze3d.shaders.Shader;
-import com.mojang.blaze3d.shaders.Uniform;
-import net.minecraft.client.renderer.ShaderInstance;
+import com.mojang.blaze3d.opengl.Uniform;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,23 +13,24 @@ import qouteall.imm_ptl.core.render.ShaderCodeTransformation;
 
 import java.util.List;
 
-@Mixin(ShaderInstance.class)
+//@Mixin(CompiledShaderProgram.class)
+@Mixin(Class.class)
 public abstract class MixinShaderInstance implements IEShader {
-    @Shadow
+    //@Shadow
     @Nullable
     public abstract Uniform getUniform(String name);
     
-    @Shadow
+    //@Shadow
     @Final
     private List<Uniform> uniforms;
-    @Shadow
+    /*@Shadow
     @Final
-    private String name;
+    private String name;*/
     
     @Nullable
     private Uniform ip_clippingEquation;
     
-    @Inject(
+    /*@Inject(
         method = "Lnet/minecraft/client/renderer/ShaderInstance;updateLocations()V",
         at = @At("HEAD")
     )
@@ -45,7 +44,7 @@ public abstract class MixinShaderInstance implements IEShader {
             );
             uniforms.add(ip_clippingEquation);
         }
-    }
+    }*/
     
     @Nullable
     @Override

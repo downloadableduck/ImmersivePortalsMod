@@ -1,5 +1,6 @@
 package qouteall.imm_ptl.core.mixin.client.render;
 
+import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.LevelRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,12 +17,12 @@ public class MixinLevelRenderer_ForceMainThreadRebuild {
             ordinal = 0
         )
     )
-    private boolean modifyShouldImmediatelyRebuild(boolean originalValue) {
+    private Camera modifyShouldImmediatelyRebuild(Camera camera) {
         if (ForceMainThreadRebuild.isCurrentFrameForceMainThreadRebuild()) {
-            return true;
+            return camera;
         }
         else {
-            return originalValue;
+            return camera;
         }
     }
 }

@@ -1,6 +1,7 @@
 package qouteall.imm_ptl.core.compat.mixin.sodium;
 
 import net.caffeinemc.mods.sodium.client.render.chunk.RenderSection;
+import net.caffeinemc.mods.sodium.client.render.chunk.lists.RenderSectionVisitor;
 import net.caffeinemc.mods.sodium.client.render.chunk.occlusion.OcclusionCuller;
 import net.caffeinemc.mods.sodium.client.render.viewport.Viewport;
 import net.minecraft.core.SectionPos;
@@ -39,9 +40,8 @@ public abstract class MixinSodiumOcclusionCuller {
     @ModifyVariable(
         method = "findVisible", at = @At("HEAD"), argsOnly = true, remap = false
     )
-    boolean modifyUseOcclusionCulling(
-        boolean originalValue,
-        OcclusionCuller.Visitor visitor, Viewport viewport, float searchDistance, boolean useOcclusionCulling, int frame
+    RenderSectionVisitor modifyUseOcclusionCulling(
+            RenderSectionVisitor arg1
     ) {
         boolean doUseOcclusionCulling = PortalRendering.shouldEnableSodiumCaveCulling();
         
@@ -61,13 +61,13 @@ public abstract class MixinSodiumOcclusionCuller {
                 RenderSection renderSection = getRenderSection(
                     ip_modifiedStartPoint.x(), ip_modifiedStartPoint.y(), ip_modifiedStartPoint.z()
                 );
-                if (renderSection != null && !isWithinFrustum(viewport, renderSection)) {
+                if (renderSection != null /*&& !isWithinFrustum(new Viewport(), renderSection)*/) {
                     ip_tolerantInitialFrustumTestFail = true;
                 }
             }
         }
         
-        return doUseOcclusionCulling;
+        return arg1;
     }
     
     // apply start point modification

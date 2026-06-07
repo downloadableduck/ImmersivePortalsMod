@@ -1,30 +1,31 @@
 package qouteall.imm_ptl.core.render;
 
-import com.mojang.blaze3d.shaders.Program;
+import com.mojang.blaze3d.shaders.ShaderType;
 import com.mojang.logging.LogUtils;
 import me.shedaniel.cloth.clothconfig.shadowed.org.yaml.snakeyaml.Yaml;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import qouteall.imm_ptl.core.IPGlobal;
 import qouteall.imm_ptl.core.McHelper;
-import qouteall.q_misc_util.Helper;
 
 import java.util.List;
 import java.util.Set;
 
+import static com.mojang.blaze3d.shaders.ShaderType.VERTEX;
+
 public class ShaderCodeTransformation {
     private static final Logger LOGGER = LogUtils.getLogger();
     
-    public static enum ShaderType {
+    public static enum PortalShaderType {
         vs, fs
     }
     
-    private static boolean matches(ShaderType me, Program.Type type) {
-        if (type == Program.Type.FRAGMENT) {
-            return me == ShaderType.fs;
+    private static boolean matches(com.mojang.blaze3d.shaders.ShaderType type, PortalShaderType me) {
+        if (type == ShaderType.FRAGMENT) {
+            return me == PortalShaderType.fs;
         }
-        else if (type == Program.Type.VERTEX) {
-            return me == ShaderType.vs;
+        else if (type == ShaderType.VERTEX) {
+            return me == PortalShaderType.vs;
         }
         return false;
     }
@@ -43,7 +44,7 @@ public class ShaderCodeTransformation {
     
     public static class Config {
         public String comment;
-        public ShaderType type;
+        public PortalShaderType type;
         public Set<String> affectedShaders;
         public List<TransformationEntry> transformations;
         public boolean debugOutput;
@@ -55,7 +56,7 @@ public class ShaderCodeTransformation {
         if (IPGlobal.enableClippingMechanism) {
             Yaml yaml = new Yaml();
             
-            String yamlStr = McHelper.readTextResource(McHelper.newResourceLocation(
+            String yamlStr = McHelper.readTextResource(McHelper.newIdentifier(
                 "immersive_portals:shaders/shader_transformation.yaml"
             ));
             ConfigsObj configsObj = yaml.loadAs(yamlStr, ConfigsObj.class);
@@ -69,7 +70,7 @@ public class ShaderCodeTransformation {
         }
     }
     
-    public static String transform(Program.Type type, String shaderId, String inputCode) {
+    public static String transform(ShaderType type, String shaderId, String inputCode) {
         if (configs == null) {
             LOGGER.info("Shader Transform Skipping {}", shaderId);
             return inputCode;
@@ -96,9 +97,9 @@ public class ShaderCodeTransformation {
     }
     
     @Nullable
-    private static Config getConfig(Program.Type type, String shaderId) {
+    private static Config getConfig(ShaderType type, String shaderId) {
         return configs.stream().filter(
-            config -> matches(config.type, type) &&
+            config -> matches(type, config.type) &&
                 config.affectedShaders.contains(shaderId)
         ).findFirst().orElse(null);
     }

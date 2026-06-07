@@ -2,44 +2,46 @@ package qouteall.imm_ptl.core.mixin.client.render.framebuffer;
 
 import com.mojang.blaze3d.pipeline.MainTarget;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import org.lwjgl.opengl.ARBFramebufferObject;
+import com.mojang.blaze3d.systems.GpuDevice;
+import com.mojang.blaze3d.textures.GpuTexture;
+import com.mojang.blaze3d.textures.TextureFormat;
+import org.jspecify.annotations.Nullable;
 import org.lwjgl.opengl.GL30;
-import org.lwjgl.opengl.GL30C;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArgs;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 import qouteall.imm_ptl.core.IPCGlobal;
 import qouteall.imm_ptl.core.ducks.IEFrameBuffer;
 
-import static org.lwjgl.opengl.GL30.GL_DEPTH24_STENCIL8;
-import static org.lwjgl.opengl.GL30.GL_DEPTH32F_STENCIL8;
-import static org.lwjgl.opengl.GL30.GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+import java.util.function.Supplier;
 
 @Mixin(MainTarget.class)
 public abstract class MixinMainTarget extends RenderTarget {
     
-    public MixinMainTarget(boolean useDepth) {
-        super(useDepth);
+    public MixinMainTarget(String useDepth, boolean bl) {
+        super(useDepth, bl);
         throw new RuntimeException();
     }
     
-    @ModifyArgs(
+    @Redirect(
         method = "allocateDepthAttachment",
         at = @At(
             value = "INVOKE",
-            target = "Lcom/mojang/blaze3d/platform/GlStateManager;_texImage2D(IIIIIIIILjava/nio/IntBuffer;)V",
-            remap = false
+            target = "Lcom/mojang/blaze3d/systems/GpuDevice;createTexture(Ljava/util/function/Supplier;ILcom/mojang/blaze3d/textures/TextureFormat;IIII)Lcom/mojang/blaze3d/textures/GpuTexture;",
+                remap = false
         )
     )
-    private void modifyTexImage2D(Args args) {
+    private GpuTexture redirectAllocateDepth(GpuDevice device, java.util.function.Supplier<String> label, int usage, TextureFormat format, int width, int height, int depth, int mips) {
         boolean isStencilBufferEnabled = ((IEFrameBuffer) this).ip_getIsStencilBufferEnabled();
-        
+
         if (isStencilBufferEnabled) {
-            args.set(2, IPCGlobal.useSeparatedStencilFormat ? GL_DEPTH32F_STENCIL8 : GL_DEPTH24_STENCIL8);
-            args.set(6, ARBFramebufferObject.GL_DEPTH_STENCIL);
-            args.set(7, IPCGlobal.useSeparatedStencilFormat ? GL_FLOAT_32_UNSIGNED_INT_24_8_REV : GL30C.GL_UNSIGNED_INT_24_8);
+
+            return device.createTexture(label, usage, format, width, height, depth, mips);
         }
+
+        return device.createTexture(label, usage, format, width, height, depth, mips);
     }
     
 //    @Redirect(
@@ -77,7 +79,7 @@ public abstract class MixinMainTarget extends RenderTarget {
 //        }
 //    }
     
-    @ModifyArgs(
+    /*@ModifyArgs(
         method = "createFrameBuffer",
         at = @At(
             value = "INVOKE",
@@ -93,7 +95,7 @@ public abstract class MixinMainTarget extends RenderTarget {
                 args.set(1, GL30.GL_DEPTH_STENCIL_ATTACHMENT);
             }
         }
-    }
+    }*/
     
 //    @Redirect(
 //        method = "Lcom/mojang/blaze3d/pipeline/MainTarget;createFrameBuffer(II)V",

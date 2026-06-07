@@ -2,6 +2,7 @@ package qouteall.imm_ptl.core.mixin.common;
 
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.TickRateManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.entity.PersistentEntitySectionManager;
 import net.minecraft.world.level.storage.DimensionDataStorage;
@@ -39,25 +40,25 @@ public abstract class MixinServerLevel implements IEServerWorld {
     
     //in vanilla if a dimension has no player and no forced chunks then it will not tick
     @Redirect(
-        method = "Lnet/minecraft/server/level/ServerLevel;tick(Ljava/util/function/BooleanSupplier;)V",
+        method = "tick(Ljava/util/function/BooleanSupplier;)V",
         at = @At(
             value = "INVOKE",
-            target = "Ljava/util/List;isEmpty()Z"
+            target = "Lnet/minecraft/world/TickRateManager;runsNormally()Z"
         )
     )
-    private boolean redirectIsEmpty(List list) {
+    private boolean redirectIsEmpty(TickRateManager instance) {
         final ServerLevel this_ = (ServerLevel) (Object) this;
         if (ImmPtlChunkTracking.shouldLoadDimension(this_.dimension())) {
             return false;
         }
-        return list.isEmpty();
+        return instance.runsNormally();
     }
     
     // for debug
     @Inject(method = "Lnet/minecraft/server/level/ServerLevel;toString()Ljava/lang/String;", at = @At("HEAD"), cancellable = true)
     private void onToString(CallbackInfoReturnable<String> cir) {
         final ServerLevel this_ = (ServerLevel) (Object) this;
-        cir.setReturnValue("ServerWorld " + this_.dimension().location() +
+        cir.setReturnValue("ServerWorld " + this_.dimension().identifier() +
             " " + serverLevelData.getLevelName());
     }
     

@@ -1,6 +1,7 @@
 package qouteall.imm_ptl.core.render.context_management;
 
-import com.mojang.blaze3d.vertex.VertexBuffer;
+import com.mojang.blaze3d.textures.GpuSampler;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -9,6 +10,7 @@ import qouteall.imm_ptl.core.ClientWorldLoader;
 import qouteall.imm_ptl.core.IPCGlobal;
 import qouteall.q_misc_util.Helper;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 /**
@@ -23,7 +25,7 @@ public class CloudContext {
     public ResourceKey<Level> dimension = null;
     public Vec3 cloudColor;
     
-    public VertexBuffer cloudsBuffer = null;
+    public GpuSampler cloudsBuffer = null;
     
     public static final ArrayList<CloudContext> contexts = new ArrayList<>();
     

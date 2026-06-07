@@ -35,17 +35,16 @@ public abstract class MixinRenderTarget implements IEFrameBuffer {
     
     
     @Shadow
-    public abstract void resize(int width, int height, boolean clearError);
+    public abstract void resize(int width, int height);
     
     @Inject(method = "<init>", at = @At("RETURN"))
     private void onInit(
-        boolean useDepth,
-        CallbackInfo ci
+            String string, boolean bl, CallbackInfo ci
     ) {
         isStencilBufferEnabled = false;
     }
     
-    @ModifyArgs(
+    /*@ModifyArgs(
         method = "createBuffers",
         at = @At(
             value = "INVOKE",
@@ -61,10 +60,10 @@ public abstract class MixinRenderTarget implements IEFrameBuffer {
                 args.set(7, IPCGlobal.useSeparatedStencilFormat ? GL_FLOAT_32_UNSIGNED_INT_24_8_REV : GL30.GL_UNSIGNED_INT_24_8);
             }
         }
-    }
+    }*/
 
 //    @Redirect(
-//        method = "Lcom/mojang/blaze3d/pipeline/RenderTarget;createBuffers(IIZ)V",
+//        method = "Lcom/mojang/blaze3d/pipeline/RenderTargetImpl;createBuffers(IIZ)V",
 //        at = @At(
 //            value = "INVOKE",
 //            target = "Lcom/mojang/blaze3d/platform/GlStateManager;_texImage2D(IIIIIIIILjava/nio/IntBuffer;)V",
@@ -98,7 +97,7 @@ public abstract class MixinRenderTarget implements IEFrameBuffer {
 //        }
 //    }
     
-    @ModifyArgs(
+    /*@ModifyArgs(
         method = "createBuffers",
         at = @At(
             value = "INVOKE",
@@ -112,10 +111,10 @@ public abstract class MixinRenderTarget implements IEFrameBuffer {
                 args.set(1, GL30.GL_DEPTH_STENCIL_ATTACHMENT);
             }
         }
-    }
+    }*/
 
 //    @Redirect(
-//        method = "Lcom/mojang/blaze3d/pipeline/RenderTarget;createBuffers(IIZ)V",
+//        method = "Lcom/mojang/blaze3d/pipeline/RenderTargetImpl;createBuffers(IIZ)V",
 //        at = @At(
 //            value = "INVOKE",
 //            target = "Lcom/mojang/blaze3d/platform/GlStateManager;_glFramebufferTexture2D(IIIII)V",
@@ -137,7 +136,7 @@ public abstract class MixinRenderTarget implements IEFrameBuffer {
 //    }
     
     @Inject(
-        method = "Lcom/mojang/blaze3d/pipeline/RenderTarget;copyDepthFrom(Lcom/mojang/blaze3d/pipeline/RenderTarget;)V",
+        method = "copyDepthFrom(Lcom/mojang/blaze3d/pipeline/RenderTarget;)V",
         at = @At("RETURN")
     )
     private void onCopiedDepthFrom(RenderTarget framebuffer, CallbackInfo ci) {
@@ -153,7 +152,7 @@ public abstract class MixinRenderTarget implements IEFrameBuffer {
     public void ip_setIsStencilBufferEnabledAndReload(boolean cond) {
         if (isStencilBufferEnabled != cond) {
             isStencilBufferEnabled = cond;
-            resize(width, height, Minecraft.ON_OSX);
+            resize(width, height);
         }
     }
 }

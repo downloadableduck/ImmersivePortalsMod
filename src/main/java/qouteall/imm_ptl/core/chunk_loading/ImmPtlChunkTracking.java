@@ -106,7 +106,7 @@ public class ImmPtlChunkTracking {
         public String toString() {
             return String.format(
                 "%s (%d,%d) distance:%d valid:%s loaded:%s",
-                dimension.location(),
+                dimension.identifier(),
                 ChunkPos.getX(chunkPos),
                 ChunkPos.getZ(chunkPos),
                 distanceToSource,
@@ -262,7 +262,7 @@ public class ImmPtlChunkTracking {
                         if (record.isLoadedToPlayer) {
                             player.connection.send(
                                 PacketRedirection.createRedirectedMessage(
-                                    player.getServer(),
+                                    player.level().getServer(),
                                     record.dimension,
                                     new ClientboundForgetLevelChunkPacket(
                                         new ChunkPos(record.chunkPos)
@@ -336,7 +336,7 @@ public class ImmPtlChunkTracking {
             ServerLevel world = server.getLevel(dimension);
             
             if (world == null) {
-                LOGGER.error("Missing dimension in chunk loader {}", dimension.location());
+                LOGGER.error("Missing dimension in chunk loader {}", dimension.identifier());
                 return true;
             }
             
@@ -480,7 +480,7 @@ public class ImmPtlChunkTracking {
         // the client can calculate the light by the block data, but not accurate on loading boundary
         
         ArrayList<ServerPlayer> result = new ArrayList<>();
-        for (ImmPtlChunkTracking.PlayerWatchRecord rec : recs.values()) {
+        for (PlayerWatchRecord rec : recs.values()) {
             if (rec.isLoadedToPlayer && (!boundaryOnly || rec.isBoundary)) {
                 result.add(rec.player);
             }
@@ -570,7 +570,7 @@ public class ImmPtlChunkTracking {
         ServerLevel world = server.getLevel(dimension);
         
         if (world == null) {
-            LOGGER.error("Missing dimension in chunk loader {}", dimension.location());
+            LOGGER.error("Missing dimension in chunk loader {}", dimension.identifier());
             return;
         }
         

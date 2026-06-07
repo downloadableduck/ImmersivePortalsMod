@@ -1,10 +1,15 @@
 package qouteall.imm_ptl.core.ducks;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 
 public interface IEPlayerPositionLookS2CPacket {
-    ResourceKey<Level> ip_getPlayerDimension();
+    default ResourceKey<Level> ip_getPlayerDimension() {
+        return Minecraft.getInstance().player.level().dimension();
+    };
     
-    void ip_setPlayerDimension(ResourceKey<Level> dimension);
+    default void ip_setPlayerDimension(ResourceKey<Level> dimension) {
+
+    };
 }

@@ -34,7 +34,7 @@ public abstract class MixinServerEntity implements IEEntityTrackerEntry {
     
     // make sure that the packet is being redirected
     @Inject(
-        method = "Lnet/minecraft/server/level/ServerEntity;sendChanges()V",
+        method = "sendChanges()V",
         at = @At("HEAD")
     )
     private void onTick(CallbackInfo ci) {
@@ -76,7 +76,7 @@ public abstract class MixinServerEntity implements IEEntityTrackerEntry {
     }
     
     @Redirect(
-        method = "Lnet/minecraft/server/level/ServerEntity;broadcastAndSend(Lnet/minecraft/network/protocol/Packet;)V",
+        method = "sendChanges",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;send(Lnet/minecraft/network/protocol/Packet;)V"

@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.Ticket;
 import net.minecraft.util.SortedArraySet;
+import net.minecraft.world.level.TicketStorage;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,18 +23,22 @@ import qouteall.imm_ptl.core.ducks.IEChunkMap;
 import qouteall.imm_ptl.core.ducks.IEDistanceManager;
 import qouteall.imm_ptl.core.platform_specific.IPConfig;
 
+import java.util.List;
+
 @Mixin(DistanceManager.class)
 public abstract class MixinDistanceManager implements IEDistanceManager {
     
     @Shadow
     @Final
-    private Long2ObjectMap<ObjectSet<ServerPlayer>> playersPerChunk;
-    
+    Long2ObjectMap<ObjectSet<ServerPlayer>> playersPerChunk;
+
+    @Final
     @Shadow
-    protected abstract SortedArraySet<Ticket<?>> getTickets(long position);
+    TicketStorage ticketStorage;
+
     
     // avoid NPE
-    @Inject(method = "Lnet/minecraft/server/level/DistanceManager;removePlayer(Lnet/minecraft/core/SectionPos;Lnet/minecraft/server/level/ServerPlayer;)V", at = @At("HEAD"))
+    @Inject(method = "removePlayer(Lnet/minecraft/core/SectionPos;Lnet/minecraft/server/level/ServerPlayer;)V", at = @At("HEAD"))
     private void onHandleChunkLeave(
         SectionPos sectionPos,
         ServerPlayer serverPlayer,
@@ -55,7 +60,7 @@ public abstract class MixinDistanceManager implements IEDistanceManager {
     }
     
     @Override
-    public SortedArraySet<Ticket<?>> portal_getTicketSet(long chunkPos) {
-        return getTickets(chunkPos);
+    public List<Ticket> portal_getTicketSet(long chunkPos) {
+        return this.ticketStorage.getTickets(chunkPos);
     }
 }

@@ -3,9 +3,11 @@ package qouteall.imm_ptl.core.mixin.client.render;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ViewArea;
 import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Final;
@@ -32,7 +34,7 @@ public class MixinLevelRenderer_Optional {
     private Minecraft minecraft;
     
     //avoid translucent sort while rendering portal
-    @Redirect(
+    /*@Redirect(
         method = "renderSectionLayer",
         at = @At(
             value = "INVOKE",
@@ -45,16 +47,16 @@ public class MixinLevelRenderer_Optional {
         if (PortalRendering.isRendering()) {
             return null;
         }
-        return RenderType.translucent();
-    }
+        return RenderTypes.glintTranslucent();
+    }*/
     
     //the camera position is used for translucent sort
     //avoid messing it
     @Redirect(
-        method = "Lnet/minecraft/client/renderer/LevelRenderer;setupRender(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/culling/Frustum;ZZ)V",
+        method = "cullTerrain",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher;setCamera(Lnet/minecraft/world/phys/Vec3;)V"
+            target = "Lnet/minecraft/client/renderer/chunk/SectionRenderDispatcher;setCameraPosition(Lnet/minecraft/world/phys/Vec3;)V"
         ),
         require = 0
     )
@@ -66,10 +68,11 @@ public class MixinLevelRenderer_Optional {
                 return;
             }
         }
-        chunkBuilder.setCamera(cameraPosition);
+        chunkBuilder.setCameraPosition(cameraPosition);
     }
-    
-    @Inject(
+
+    //commented out code
+    /*@Inject(
         method = "renderSectionLayer",
         at = @At(
             value = "INVOKE",
@@ -81,15 +84,15 @@ public class MixinLevelRenderer_Optional {
         RenderType renderType, double x, double y, double z, Matrix4f projectionMatrix, Matrix4f frustrumMatrix, CallbackInfo ci
     ) {
         FrontClipping.updateClippingEquationUniformForCurrentShader(false);
-    }
+    }*/
     
     // correct the position of updating ViewArea
     @Redirect(
-        method = "setupRender",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getX()D"),
+        method = "extractVisibleEntities",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getX()D"),
         require = 0
     )
-    private double redirectGetXInSetupRender(LocalPlayer player) {
+    private double redirectGetXInSetupRender(Entity player) {
         if (WorldRenderInfo.isRendering()) {
             return WorldRenderInfo.getCameraPos().x;
         }
@@ -98,11 +101,11 @@ public class MixinLevelRenderer_Optional {
     
     // biolerplate
     @Redirect(
-        method = "setupRender",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getY()D"),
+        method = "extractVisibleEntities",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getY()D"),
         require = 0
     )
-    private double redirectGetYInSetupRender(LocalPlayer player) {
+    private double redirectGetYInSetupRender(Entity player) {
         if (WorldRenderInfo.isRendering()) {
             return WorldRenderInfo.getCameraPos().y;
         }
@@ -111,11 +114,11 @@ public class MixinLevelRenderer_Optional {
     
     // biolerplate
     @Redirect(
-        method = "setupRender",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getZ()D"),
+        method = "extractVisibleEntities",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getZ()D"),
         require = 0
     )
-    private double redirectGetZInSetupRender(LocalPlayer player) {
+    private double redirectGetZInSetupRender(Entity player) {
         if (WorldRenderInfo.isRendering()) {
             return WorldRenderInfo.getCameraPos().z;
         }

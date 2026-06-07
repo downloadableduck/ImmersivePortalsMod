@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.8-SNAPSHOT'
+    id 'fabric-loom' version '1.16-SNAPSHOT'
 
     id 'maven-publish'
 
@@ -61,23 +61,19 @@ repositories {
 }
 
 loom {
-    accessWidenerPath = file("src/main/resources/imm_ptl.accesswidener")
+    accessWidenerPath = file("src/main/resources/imm_ptl.classtweaker")
 }
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
 
-    mappings loom.layered() {
-        officialMojangMappings() {
-            setNameSyntheticMembers(false)
-        }
-        parchment("org.parchmentmc.data:parchment-1.21:2024.07.28")
-    }
-
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    mappings loom.officialMojangMappings()
 
     modImplementation("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}") {
         exclude module: "fabric-gametest-api-v1"
+        exclude module: "fabric-content-registries-v0"
         // for now, the gametest module makes client unable to login dev env server
     }
 
@@ -89,19 +85,24 @@ dependencies {
     modCompileOnly "maven.modrinth:modmenu:${modmenu_version}"
     modLocalRuntime "maven.modrinth:modmenu:${modmenu_version}"
 
+    modImplementation "maven.modrinth:midnightlib:${project.midnightlib_version}"
+
+
+    modImplementation (files(files('libs/dimlib.jar')))
+
     modCompileOnly "${project.sodium_path}"
 
     modCompileOnly "${project.iris_path}"
 
-    modCompileOnly("com.github.qouteall:GravityChanger:${gravity_changer_version}") {
+    /*modCompileOnly("com.github.qouteall:GravityChanger:${gravity_changer_version}") {
         exclude(group: "net.fabricmc.fabric-api")
         transitive(false)
-    }
+    }*/
 
-    modApi("com.github.iPortalTeam:DimLib:${dimlib_version}") {
+    /*modApi("com.github.iPortalTeam:DimLib:${dimlib_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
-    include("com.github.iPortalTeam:DimLib:${dimlib_version}")
+    include("com.github.iPortalTeam:DimLib:${dimlib_version}")*/
 
     // put these into inner mod to reduce duplicate MC jar
 
@@ -160,7 +161,7 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 17
+    it.options.release = 21
 }
 
 java {
@@ -169,8 +170,10 @@ java {
     // If you remove this line, sources will not be generated.
     withSourcesJar()
 
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 
@@ -248,4 +251,8 @@ publishMods {
         accessToken = providers.environmentVariable("GITHUB_TOKEN")
         commitish = "${project.git_branch}"
     }
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-Xmaxerrs" << "2000"
 }

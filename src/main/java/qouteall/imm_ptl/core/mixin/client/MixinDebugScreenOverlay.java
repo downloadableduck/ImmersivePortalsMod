@@ -12,7 +12,7 @@ import java.util.List;
 
 @Mixin(DebugScreenOverlay.class)
 public class MixinDebugScreenOverlay {
-    @Inject(method = "Lnet/minecraft/client/gui/components/DebugScreenOverlay;getSystemInformation()Ljava/util/List;", at = @At("RETURN"), cancellable = true)
+   /* @Inject(method = "Lnet/minecraft/client/gui/components/DebugScreenOverlay;getSystemInformation()Ljava/util/List;", at = @At("RETURN"), cancellable = true)
     private void onGetRightText(CallbackInfoReturnable<List<String>> cir) {
         List<String> returnValue = cir.getReturnValue();
         
@@ -24,6 +24,6 @@ public class MixinDebugScreenOverlay {
         else {
             returnValue.addAll(debugText);
         }
-    }
+    }*/
     
 }

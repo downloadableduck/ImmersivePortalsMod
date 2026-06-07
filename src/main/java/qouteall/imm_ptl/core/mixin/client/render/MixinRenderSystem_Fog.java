@@ -8,7 +8,7 @@ import qouteall.imm_ptl.core.render.MyRenderHelper;
 
 @Mixin(value = RenderSystem.class, remap = false)
 public class MixinRenderSystem_Fog {
-    @ModifyVariable(
+    /*@ModifyVariable(
         method = "setShaderFogStart", at = @At("HEAD"), argsOnly = true
     )
     private static float onSetShaderFogStart(float f) {
@@ -20,5 +20,5 @@ public class MixinRenderSystem_Fog {
     )
     private static float onSetShaderFogEnd(float f) {
         return MyRenderHelper.transformFogDistance(f);
-    }
+    }*/
 }
